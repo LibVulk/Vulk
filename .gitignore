@@ -1,3 +1,11 @@
+# IDEs
+
+.vs/
+.vscode/
+.idea/
+cmake-build-*/
+[Bb]uild/
+
 # Prerequisites
 *.d
 
