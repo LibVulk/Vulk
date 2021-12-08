@@ -1,6 +1,7 @@
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    link_libraries(tbb)
-    add_compile_definitions(TBB_SUPPRESS_DEPRECATED_MESSAGES=1) # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=101228
+    # Enable if using std::execution
+    #    link_libraries(tbb)
+    #    add_compile_definitions(TBB_SUPPRESS_DEPRECATED_MESSAGES=1) # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=101228
 endif ()
 
 if (MSVC)
