@@ -1,5 +1,7 @@
 # Original from https://github.com/cpp-best-practices/cpp_starter_project/blob/main/cmake/CompilerWarnings.cmake
-# Slightly altered to fit my needs :)
+# Slightly altered to fit our needs :)
+
+# TODO: These are setting compiler flags overall. We should only apply them to the library!
 
 set(MSVC_WARNINGS
         /W4 # Baseline reasonable warnings
