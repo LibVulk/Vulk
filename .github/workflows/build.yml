@@ -1,0 +1,67 @@
+name: C++ Cross-Platform Build
+
+on: push
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+
+  clang-format-check:
+    name: clang-format check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run clang-format
+        uses: jidicula/clang-format-action@v4.4.0
+        with:
+          clang-format-version: '13'
+
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-20.04, windows-2019 ]
+        mode: [ "Debug", "Release" ]
+        warnings: [ "", "-DWARNINGS_AS_ERRORS=ON" ]
+        include:
+          - os: ubuntu-20.04
+            cxx-override: CC=gcc-10 CXX=g++-10
+          - os: windows-2019
+            pdb-path: ./build/*.pdb
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      ## Enable if using std::execution
+      #      - name: apt dependencies
+      #        run: sudo apt install -y libtbb-dev
+      #        if: startsWith(matrix.os, 'ubuntu')
+
+      - name: Configure
+        run: |
+          mkdir build
+          cd build
+          ${{ matrix.cxx-override }} \
+          cmake -DCMAKE_BUILD_TYPE=${{ matrix.mode }} ${{ matrix.warnings }} ..
+
+      - name: Build
+        working-directory: build
+        run: cmake --build . --config ${{ matrix.mode }}
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ runner.os }}-${{ matrix.mode }}.zip
+          path: |
+            ${{ matrix.pdb-path }}
+          if-no-files-found: warn
+          retention-days: 30
+        if: ${{ matrix.warnings == "" }}  # Avoid duplicates for with or without warnings
