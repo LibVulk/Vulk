@@ -64,4 +64,4 @@ jobs:
             ${{ matrix.pdb-path }}
           if-no-files-found: warn
           retention-days: 30
-        if: matrix.warnings == ""  # Avoid duplicates for with or without warnings
+        if: matrix.warnings == ''  # Avoid duplicates for with or without warnings
