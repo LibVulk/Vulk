@@ -15,9 +15,9 @@ if (NOT CMAKE_BUILD_TYPE OR "${CMAKE_BUILD_TYPE}" STREQUAL "")
     message(WARNING "CMAKE_BUILD_TYPE undefined. Defaulting to Release.")
 endif ()
 
-include_directories(vendor/Vulkan-Hpp/vulkan)
-include_directories(vendor/glfw/include)
-include_directories(vendor/glm)
+include_directories(SYSTEM vendor/Vulkan-Hpp)
+include_directories(SYSTEM vendor/glfw/include)
+include_directories(SYSTEM vendor/glm)
 
 include(cmake/options.cmake)  # *needs to be first*
 include(cmake/warnings.cmake)
