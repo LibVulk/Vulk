@@ -42,7 +42,7 @@ jobs:
 
 
       - name: apt dependencies
-        run: sudo apt install -y xorg-dev  # Add `libtbb-dev` if using std::execution
+        run: sudo apt update && sudo apt install -y xorg-dev  # Add `libtbb-dev` if using std::execution
         if: startsWith(matrix.os, 'ubuntu')
 
       - name: Configure
