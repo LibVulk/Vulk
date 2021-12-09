@@ -40,10 +40,10 @@ jobs:
         with:
           submodules: true
 
-      ## Enable if using std::execution
-      #      - name: apt dependencies
-      #        run: sudo apt install -y libtbb-dev
-      #        if: startsWith(matrix.os, 'ubuntu')
+
+      - name: apt dependencies
+        run: sudo apt install -y xorg-dev  # Add `libtbb-dev` if using std::execution
+        if: startsWith(matrix.os, 'ubuntu')
 
       - name: Configure
         run: |
