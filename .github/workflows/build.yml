@@ -78,11 +78,11 @@ jobs:
         working-directory: build
         run: cmake --build . --config ${{ matrix.mode }}
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{ runner.os }}-${{ matrix.mode }}.zip
-          path: |  # TODO: add lib and exe build results here
-            ${{ matrix.pdb-path }}
-          if-no-files-found: warn
-          retention-days: 30
+#      - name: Upload Artifacts
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: ${{ runner.os }}-${{ matrix.mode }}.zip
+#          path: |  # TODO: add lib and exe build results here
+#            ${{ matrix.pdb-path }}
+#          if-no-files-found: warn
+#          retention-days: 30
