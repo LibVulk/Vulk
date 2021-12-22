@@ -113,7 +113,7 @@ void sfvl::ContextVulkan::createInstance()
     createInfo.ppEnabledExtensionNames = glfwExtensions;
 
 #if SFVL_DEBUG
-    createInfo.enabledLayerCount = VALIDATION_LAYER_NAMES.size();
+    createInfo.enabledLayerCount = static_cast<uint32_t>(VALIDATION_LAYER_NAMES.size());
     createInfo.ppEnabledLayerNames = VALIDATION_LAYER_NAMES.data();
 #else
     createInfo.enabledLayerCount = 0;
