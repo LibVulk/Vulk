@@ -6,6 +6,12 @@ defaults:
   run:
     shell: bash
 
+env:
+  CONAN_REVISIONS_ENABLED: 1
+  CONAN_SYSREQUIRES_MODE: enabled
+  CONAN_COLOR_DISPLAY: 1
+  CONAN_NON_INTERACTIVE: 1
+
 jobs:
 
   clang-format-check:
@@ -23,6 +29,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # CI jobs go brrrrr
         os: [ ubuntu-20.04, windows-2019 ]
         mode: [ "Debug", "Release" ]
         warnings: [ "", "-DWARNINGS_AS_ERRORS=ON" ]
@@ -37,13 +44,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          submodules: true
 
-
-      - name: apt dependencies
-        run: sudo apt update && sudo apt install -y xorg-dev  # Add `libtbb-dev` if using std::execution
-        if: startsWith(matrix.os, 'ubuntu')
+#      - name: apt dependencies
+#        run: sudo apt update && sudo apt install -y xorg-dev  # Add `libtbb-dev` if using std::execution
+#        if: startsWith(matrix.os, 'ubuntu')
 
       - name: Configure
         run: |
@@ -60,8 +64,8 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ${{ runner.os }}-${{ matrix.mode }}.zip
-          path: |
+          path: |  # TODO: add lib and exe build results here
             ${{ matrix.pdb-path }}
           if-no-files-found: warn
           retention-days: 30
-        if: matrix.warnings == ''  # Avoid duplicates for with or without warnings
+        if: matrix.warnings == ''  # Avoid duplicates with jobs that check warnings

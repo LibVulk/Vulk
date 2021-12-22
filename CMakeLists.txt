@@ -15,13 +15,11 @@ if (NOT CMAKE_BUILD_TYPE OR "${CMAKE_BUILD_TYPE}" STREQUAL "")
     message(WARNING "CMAKE_BUILD_TYPE undefined. Defaulting to Release.")
 endif ()
 
-add_subdirectory(vendor/glfw)
-add_subdirectory(vendor/Vulkan-Headers)
-
-include_directories(SYSTEM vendor/Vulkan-Headers/include)
-include_directories(SYSTEM vendor/Vulkan-Hpp)
-include_directories(SYSTEM vendor/glfw/include)
-include_directories(SYSTEM vendor/glm)
+include(cmake/conan.cmake)
+run_conan()
+link_directories(${CONAN_LIB_DIRS})
+link_libraries(${CONAN_LIBS})
+include_directories(SYSTEM "${CONAN_INCLUDE_DIRS}")
 
 include(cmake/options.cmake)  # *needs to be first*
 include(cmake/warnings.cmake)

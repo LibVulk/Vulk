@@ -9,4 +9,3 @@ add_library(
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE include/SFVL)
-target_link_libraries(${PROJECT_NAME} PUBLIC glfw vulkan)
