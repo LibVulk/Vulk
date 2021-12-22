@@ -29,10 +29,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # CI jobs go brrrrr
         os: [ ubuntu-20.04, windows-2019 ]
         mode: [ "Debug", "Release" ]
-        warnings: [ "", "-DWARNINGS_AS_ERRORS=ON" ]
         include:
           - os: ubuntu-20.04
             cxx-override: CC=gcc-10 CXX=g++-10
@@ -45,16 +43,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - uses: actions/setup-python@v2
+
+      - name: Conan Cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.conan
+          key: ${{ runner.os }}-conan-${{ matrix.mode }}-${{ hashFiles('**/conanfile.txt') }}
+
 #      - name: apt dependencies
 #        run: sudo apt update && sudo apt install -y xorg-dev  # Add `libtbb-dev` if using std::execution
 #        if: startsWith(matrix.os, 'ubuntu')
+
+      - name: Install Pip Dependencies
+        run: pip install -r requirements.txt
 
       - name: Configure
         run: |
           mkdir build
           cd build
           ${{ matrix.cxx-override }} \
-          cmake -DCMAKE_BUILD_TYPE=${{ matrix.mode }} ${{ matrix.warnings }} ..
+          cmake -DCMAKE_BUILD_TYPE=${{ matrix.mode }} ..
 
       - name: Build
         working-directory: build
@@ -68,4 +77,3 @@ jobs:
             ${{ matrix.pdb-path }}
           if-no-files-found: warn
           retention-days: 30
-        if: matrix.warnings == ''  # Avoid duplicates with jobs that check warnings
