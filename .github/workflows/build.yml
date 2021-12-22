@@ -1,0 +1,88 @@
+name: C++ Cross-Platform Build
+
+on: push
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CONAN_REVISIONS_ENABLED: 1
+  CONAN_SYSREQUIRES_MODE: verify
+  CONAN_COLOR_DISPLAY: 1
+  CONAN_NON_INTERACTIVE: 1
+
+jobs:
+
+  clang-format-check:
+    name: clang-format check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run clang-format
+        uses: jidicula/clang-format-action@v4.4.0
+        with:
+          clang-format-version: '13'
+
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-20.04, windows-2019 ]
+        mode: [ "Debug", "Release" ]
+        include:
+          - os: ubuntu-20.04
+            cxx-override: CC=gcc-10 CXX=g++-10
+          - os: windows-2019
+            pdb-path: ./build/*.pdb
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+
+      - name: Conan Cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.conan
+          key: ${{ runner.os }}-conan-${{ matrix.mode }}-${{ hashFiles('**/conanfile.txt') }}
+
+      # Fetched using conan to see what apt dependencies were needed, most should already be installed, but we never know...
+      - name: apt dependencies
+        run: |  # Add `libtbb-dev` if using std::execution
+          sudo apt update
+          sudo apt install -y \
+            libgl-dev \
+            libfontenc-dev libx11-xcb-dev libxaw7-dev libxcb-dri3-dev libxcb-icccm4-dev libxcb-image0-dev \
+            libxcb-keysyms1-dev libxcb-randr0-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-sync-dev \
+            libxcb-util-dev libxcb-xfixes0-dev libxcb-xinerama0-dev libxcb-xkb-dev libxcomposite-dev libxcursor-dev \
+            libxdamage-dev libxfixes-dev libxi-dev libxinerama-dev libxmu-dev libxmuu-dev libxpm-dev libxrandr-dev \
+            libxres-dev libxss-dev libxtst-dev libxv-dev libxvmc-dev libxxf86vm-dev
+        if: startsWith(matrix.os, 'ubuntu')
+
+      - name: Install Pip Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Configure
+        run: |
+          mkdir build
+          cd build
+          ${{ matrix.cxx-override }} \
+          cmake -DCMAKE_BUILD_TYPE=${{ matrix.mode }} ..
+
+      - name: Build
+        working-directory: build
+        run: cmake --build . --config ${{ matrix.mode }}
+
+#      - name: Upload Artifacts
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: ${{ runner.os }}-${{ matrix.mode }}.zip
+#          path: |  # TODO: add lib and exe build results here
+#            ${{ matrix.pdb-path }}
+#          if-no-files-found: warn
+#          retention-days: 30

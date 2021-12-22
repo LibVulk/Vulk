@@ -1,0 +1,18 @@
+[requires]
+vulkan-headers/1.2.198.0
+vulkan-loader/1.2.198.0
+glm/0.9.9.8
+glfw/3.3.6
+
+# These could be used for examples or the lib itself... We will disable them for now.
+# fmt/8.0.1
+# spdlog/1.9.2
+# argparse/2.2
+# imgui/1.85
+
+[options]
+
+[generators]
+cmake
+
+# v1  # Increment to reset gh-action cache

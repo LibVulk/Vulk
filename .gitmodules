@@ -1,9 +1,0 @@
-[submodule "vendor/Vulkan-Hpp"]
-	path = vendor/Vulkan-Hpp
-	url = https://github.com/KhronosGroup/Vulkan-Hpp
-[submodule "vendor/glm"]
-	path = vendor/glm
-	url = https://github.com/g-truc/glm
-[submodule "vendor/glfw"]
-	path = vendor/glfw
-	url = https://github.com/glfw/glfw
