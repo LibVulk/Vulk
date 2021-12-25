@@ -6,6 +6,7 @@ add_library(
         src/Error.cpp include/SFVL/Error.hpp
         src/Contexts/ContextVulkan.cpp include/SFVL/Contexts/ContextVulkan.hpp
         src/FrameManager.cpp include/SFVL/FrameManager.hpp
+        src/ScopedProfiler.cpp include/SFVL/ScopedProfiler.hpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE include/SFVL)
