@@ -92,14 +92,14 @@ private:
     [[nodiscard]] QueueFamilyEntry findQueueFamilies(const vk::PhysicalDevice& physicalDevice) const noexcept;
     [[nodiscard]] SwapChainSupportDetails querySwapChainSupport(const vk::PhysicalDevice& device) const noexcept;
 
-    vk::Instance m_instance{VK_NULL_HANDLE};
-    vk::PhysicalDevice m_physicalDevice{VK_NULL_HANDLE};
-    vk::Device m_device{VK_NULL_HANDLE};
-    vk::SurfaceKHR m_surface{VK_NULL_HANDLE};
+    vk::Instance m_instance{};
+    vk::PhysicalDevice m_physicalDevice{};
+    vk::Device m_device{};
+    vk::SurfaceKHR m_surface{};
     vk::SurfaceFormatKHR m_surfaceFormat{};
 
-    vk::Queue m_graphicsQueue{VK_NULL_HANDLE};
-    vk::Queue m_presentQueue{VK_NULL_HANDLE};
+    vk::Queue m_graphicsQueue{};
+    vk::Queue m_presentQueue{};
 
     QueueFamilyIndices m_queueFamilyIndices{};
     QueueFamilyPropertiesList m_queueFamilyProperties{};
