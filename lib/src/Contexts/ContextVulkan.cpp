@@ -234,6 +234,9 @@ void sfvl::ContextVulkan::chooseSwapSurfaceFormat(const std::vector<vk::SurfaceF
         }
     }
 
+#if SFVL_DEBUG
+    std::cerr << "Warning: unexpected format support, using the first available one.\n";
+#endif
     m_surfaceFormat = availableFormats[0];
 }
 
