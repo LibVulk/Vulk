@@ -202,7 +202,7 @@ void sfvl::ContextVulkan::createLogicalDevice()
     createInfo.enabledLayerCount = 0;
 
     // This could be better: here we only use static extensions at compile time, would be better to fetch them dynamically.
-    createInfo.enabledExtensionCount = REQUIRED_EXTENSION_NAMES.size();
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(REQUIRED_EXTENSION_NAMES.size());
     createInfo.ppEnabledExtensionNames = REQUIRED_EXTENSION_NAMES.data();
 
     m_device = m_physicalDevice.createDevice(createInfo);
