@@ -30,14 +30,7 @@ std::unique_ptr<sfvl::ContextVulkan> sfvl::ContextVulkan::s_instance{nullptr};
 sfvl::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle)
 {
 #if SFVL_DEBUG
-    std::cout << "Available Layers:\n";
-
-    for (const auto& layer : getAvailableValidationLayers())
-    {
-        std::cout << "\t" << layer.layerName << '\n';
-    }
-    std::cout.flush();
-
+    // printAvailableValidationLayers();
     verifyValidationLayersSupport();
 #endif
 
@@ -45,10 +38,17 @@ sfvl::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle)
     createSurface(windowHandle);
     pickPhysicalDevice();
     createLogicalDevice();
+    chooseSwapSurfaceFormat(m_swapChainSupport.formats);
+
+#if SFVL_DEBUG
+    std::cout << "Selected GPU name: " << m_physicalDevice.getProperties().deviceName << std::endl;
+#endif
 }
 
 sfvl::ContextVulkan::~ContextVulkan()
 {
+    // TODO: use vk::raii
+
     if (m_surface)
         m_instance.destroy(m_surface);
 
@@ -65,6 +65,17 @@ void sfvl::ContextVulkan::createInstance(GLFWwindow* windowHandle)
         return;
 
     s_instance = std::unique_ptr<ContextVulkan>(new ContextVulkan{windowHandle});
+}
+
+void sfvl::ContextVulkan::printAvailableValidationLayers()
+{
+    std::cout << "Available Layers:\n";
+
+    for (const auto& layer : getAvailableValidationLayers())
+    {
+        std::cout << "\t" << layer.layerName << '\n';
+    }
+    std::cout.flush();
 }
 
 void sfvl::ContextVulkan::verifyValidationLayersSupport()
@@ -144,13 +155,18 @@ void sfvl::ContextVulkan::pickPhysicalDevice()
 
     for (const auto& device : devices)
     {
-        auto [list, indices] = findQueueFamilies(device);
+        const auto& [list, indices] = findQueueFamilies(device);
+        const auto& swapChainSupportDetails = querySwapChainSupport(device);
 
-        if (indices.isValid())
+        // For now, we pick the first device we get.
+        // Ideally, we should pick a dedicated GPU in case the CPU also does GPU.
+        // Long term, we could even let the developers / users pick for themselves.
+        if (indices.isValid() && verifyExtensionsSupport(device) && swapChainSupportDetails.isValid())
         {
             m_physicalDevice = device;
-            m_queueFamilyProperties = std::move(list);
             m_queueFamilyIndices = indices;
+            m_queueFamilyProperties = list;
+            m_swapChainSupport = swapChainSupportDetails;
             break;
         }
     }
@@ -184,7 +200,10 @@ void sfvl::ContextVulkan::createLogicalDevice()
     createInfo.pQueueCreateInfos = queueCreateInfoList.data();
     createInfo.queueCreateInfoCount = static_cast<uint32_t>(uniqueQueueFamilies.size());
     createInfo.enabledLayerCount = 0;
-    createInfo.enabledExtensionCount = 0;
+
+    // This could be better: here we only use static extensions at compile time, would be better to fetch them dynamically.
+    createInfo.enabledExtensionCount = REQUIRED_EXTENSION_NAMES.size();
+    createInfo.ppEnabledExtensionNames = REQUIRED_EXTENSION_NAMES.data();
 
     m_device = m_physicalDevice.createDevice(createInfo);
 
@@ -202,7 +221,44 @@ void sfvl::ContextVulkan::createLogicalDevice()
         throw std::runtime_error("Failed to retrieve present queue");
 }
 
-sfvl::ContextVulkan::QueueFamilyEntry sfvl::ContextVulkan::findQueueFamilies(const vk::PhysicalDevice& physicalDevice)
+void sfvl::ContextVulkan::chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats)
+{
+    assert(!availableFormats.empty());
+
+    for (const auto& format : availableFormats)
+    {
+        if (format.format == vk::Format::eB8G8R8A8Srgb && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
+        {
+            m_surfaceFormat = format;
+            return;
+        }
+    }
+
+    m_surfaceFormat = availableFormats[0];
+}
+
+bool sfvl::ContextVulkan::verifyExtensionsSupport(const vk::PhysicalDevice& device)
+{
+    const auto& currentExts = device.enumerateDeviceExtensionProperties();
+
+    bool allValid = true;
+    for (const auto& extension : REQUIRED_EXTENSION_NAMES)
+    {
+        const bool valid = std::find_if(currentExts.cbegin(), currentExts.cend(), [&extension](const auto& props) {
+                               return std::string_view{props.extensionName} == std::string_view{extension};
+                           }) != currentExts.cend();
+
+        if (!valid)
+            std::cerr << "Extension `" << extension << "` is not supported but is required.\n";
+
+        allValid &= valid;
+    }
+
+    return allValid;
+}
+
+sfvl::ContextVulkan::QueueFamilyEntry
+sfvl::ContextVulkan::findQueueFamilies(const vk::PhysicalDevice& physicalDevice) const noexcept
 {
     auto queueFamilies = physicalDevice.getQueueFamilyProperties();
     QueueFamilyIndices indices{};
@@ -223,6 +279,16 @@ sfvl::ContextVulkan::QueueFamilyEntry sfvl::ContextVulkan::findQueueFamilies(con
     }
 
     return std::make_pair(std::move(queueFamilies), indices);
+}
+
+sfvl::ContextVulkan::SwapChainSupportDetails
+sfvl::ContextVulkan::querySwapChainSupport(const vk::PhysicalDevice& device) const noexcept
+{
+    SwapChainSupportDetails details{device.getSurfaceCapabilitiesKHR(m_surface),  //
+                                    device.getSurfaceFormatsKHR(m_surface),       //
+                                    device.getSurfacePresentModesKHR(m_surface)};
+
+    return details;
 }
 
 sfvl::ContextVulkan& sfvl::ContextVulkan::getInstance()

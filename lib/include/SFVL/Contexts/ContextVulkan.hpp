@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan.hpp>  // TODO: since this adds some compiling time, we should "hide" it with forwards declarations
 
 #include <array>
 #include <memory>
@@ -36,6 +36,7 @@ public:
     static void createInstance(GLFWwindow* windowHandle);
     static ContextVulkan& getInstance();
 
+    static void printAvailableValidationLayers();
     static void verifyValidationLayersSupport();
     static inline std::vector<vk::LayerProperties> getAvailableValidationLayers()
     {
@@ -43,6 +44,7 @@ public:
     }
 
     static constexpr std::array VALIDATION_LAYER_NAMES{"VK_LAYER_KHRONOS_validation"};
+    static constexpr std::array REQUIRED_EXTENSION_NAMES{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
 private:
     struct QueueFamilyIndices
@@ -65,6 +67,15 @@ private:
         [[nodiscard]] bool isValid() const noexcept { return isComplete(); }
     };
 
+    struct SwapChainSupportDetails
+    {
+        vk::SurfaceCapabilitiesKHR capabilities{};
+        std::vector<vk::SurfaceFormatKHR> formats{};
+        std::vector<vk::PresentModeKHR> presentModes{};
+
+        [[nodiscard]] bool isValid() const noexcept { return !formats.empty() && !presentModes.empty(); }
+    };
+
     using QueueFamilyPropertiesList = std::vector<vk::QueueFamilyProperties>;
     using QueueFamilyEntry = std::pair<QueueFamilyPropertiesList, QueueFamilyIndices>;
 
@@ -74,19 +85,25 @@ private:
     void createSurface(GLFWwindow* windowHandle);
     void pickPhysicalDevice();
     void createLogicalDevice();
+    void chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats);
 
-    [[nodiscard]] QueueFamilyEntry findQueueFamilies(const vk::PhysicalDevice& physicalDevice);
+    static bool verifyExtensionsSupport(const vk::PhysicalDevice& device);
+
+    [[nodiscard]] QueueFamilyEntry findQueueFamilies(const vk::PhysicalDevice& physicalDevice) const noexcept;
+    [[nodiscard]] SwapChainSupportDetails querySwapChainSupport(const vk::PhysicalDevice& device) const noexcept;
 
     vk::Instance m_instance{VK_NULL_HANDLE};
     vk::PhysicalDevice m_physicalDevice{VK_NULL_HANDLE};
     vk::Device m_device{VK_NULL_HANDLE};
     vk::SurfaceKHR m_surface{VK_NULL_HANDLE};
+    vk::SurfaceFormatKHR m_surfaceFormat{};
 
     vk::Queue m_graphicsQueue{VK_NULL_HANDLE};
     vk::Queue m_presentQueue{VK_NULL_HANDLE};
 
-    QueueFamilyPropertiesList m_queueFamilyProperties{};
     QueueFamilyIndices m_queueFamilyIndices{};
+    QueueFamilyPropertiesList m_queueFamilyProperties{};
+    SwapChainSupportDetails m_swapChainSupport{};
 
     static std::unique_ptr<ContextVulkan> s_instance;
 };
