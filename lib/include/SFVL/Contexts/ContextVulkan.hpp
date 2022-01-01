@@ -122,6 +122,10 @@ private:
     vk::Queue m_graphicsQueue{};
     vk::Queue m_presentQueue{};
 
+    vk::SwapchainKHR m_swapChain{};
+    std::vector<vk::Image> m_swapChainImages{};
+    vk::Format m_swapChainFormat{};
+
     QueueFamilyIndices m_queueFamilyIndices{};
     QueueFamilyPropertiesList m_queueFamilyProperties{};
     SwapChainSupportDetails m_swapChainSupport{};

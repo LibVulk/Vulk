@@ -51,6 +51,9 @@ sfvl::ContextVulkan::~ContextVulkan()
 {
     // TODO: use vk::raii
 
+    if (m_swapChain && m_device)
+        m_device.destroy(m_swapChain);
+
     if (m_surface)
         m_instance.destroy(m_surface);
 
@@ -243,6 +246,33 @@ void sfvl::ContextVulkan::createSwapChain(GLFWwindow* windowHandle)
     createInfo.imageExtent = m_extent;
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;  // vk::ImageUsageFlagBits::eTransferDst later?
+    createInfo.preTransform = m_swapChainSupport.capabilities.currentTransform;
+    createInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;  // customizable later?
+    createInfo.presentMode = m_presentMode;
+    createInfo.clipped = true;
+
+    const uint32_t queueFamilyIndices[] = {m_queueFamilyIndices.graphicsFamily.value(),
+                                           m_queueFamilyIndices.presentFamily.value()};
+
+    if (m_queueFamilyIndices.graphicsFamily != m_queueFamilyIndices.presentFamily)
+    {
+        createInfo.imageSharingMode = vk::SharingMode::eConcurrent;
+        createInfo.queueFamilyIndexCount = 2;
+        createInfo.pQueueFamilyIndices = queueFamilyIndices;
+    } else
+    {
+        createInfo.imageSharingMode = vk::SharingMode::eExclusive;
+    }
+
+    m_swapChain = m_device.createSwapchainKHR(createInfo, nullptr);
+
+    if (!m_swapChain)
+    {
+        throw std::runtime_error("Failed to create swap chain");
+    }
+
+    m_swapChainImages = m_device.getSwapchainImagesKHR(m_swapChain);
+    m_swapChainFormat = m_surfaceFormat.format;
 }
 
 void sfvl::ContextVulkan::chooseSwapSurfaceFormat()
