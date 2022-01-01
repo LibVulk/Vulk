@@ -25,6 +25,8 @@
 #include <set>
 #include <string_view>
 
+#include "Utils.hpp"
+
 std::unique_ptr<sfvl::ContextVulkan> sfvl::ContextVulkan::s_instance{nullptr};
 
 sfvl::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle)
@@ -38,7 +40,7 @@ sfvl::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle)
     createSurface(windowHandle);
     pickPhysicalDevice();
     createLogicalDevice();
-    chooseSwapSurfaceFormat(m_swapChainSupport.formats);
+    createSwapChain(windowHandle);
 
 #if SFVL_DEBUG
     std::cout << "Selected GPU name: " << m_physicalDevice.getProperties().deviceName << std::endl;
@@ -221,11 +223,33 @@ void sfvl::ContextVulkan::createLogicalDevice()
         throw std::runtime_error("Failed to retrieve present queue");
 }
 
-void sfvl::ContextVulkan::chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats)
+void sfvl::ContextVulkan::createSwapChain(GLFWwindow* windowHandle)
 {
-    assert(!availableFormats.empty());
+    chooseSwapSurfaceFormat();
+    chooseSwapPresentMode();
+    chooseSwapExtent(windowHandle);
 
-    for (const auto& format : availableFormats)
+    uint32_t imageCount = m_swapChainSupport.capabilities.minImageCount + 1;
+    if (m_swapChainSupport.capabilities.maxImageCount > 0 && imageCount > m_swapChainSupport.capabilities.maxImageCount)
+    {
+        imageCount = m_swapChainSupport.capabilities.maxImageCount;
+    }
+
+    vk::SwapchainCreateInfoKHR createInfo{};
+    createInfo.surface = m_surface;
+    createInfo.minImageCount = imageCount;
+    createInfo.imageFormat = m_surfaceFormat.format;
+    createInfo.imageColorSpace = m_surfaceFormat.colorSpace;
+    createInfo.imageExtent = m_extent;
+    createInfo.imageArrayLayers = 1;
+    createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;  // vk::ImageUsageFlagBits::eTransferDst later?
+}
+
+void sfvl::ContextVulkan::chooseSwapSurfaceFormat()
+{
+    assert(!m_swapChainSupport.formats.empty());
+
+    for (const auto& format : m_swapChainSupport.formats)
     {
         if (format.format == vk::Format::eB8G8R8A8Srgb && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
         {
@@ -237,7 +261,44 @@ void sfvl::ContextVulkan::chooseSwapSurfaceFormat(const std::vector<vk::SurfaceF
 #if SFVL_DEBUG
     std::cerr << "Warning: unexpected format support, using the first available one.\n";
 #endif
-    m_surfaceFormat = availableFormats[0];
+    m_surfaceFormat = m_swapChainSupport.formats[0];
+}
+
+void sfvl::ContextVulkan::chooseSwapPresentMode()
+{
+    for (const auto& presentMode : PRESENT_MODES_PREFERRED)
+    {
+        // This can be expensive to search the list again and again,
+        // but since the list is less than 5 elements and is done once, shouldn't matter too much.
+
+        if (utils::vectorContains(m_swapChainSupport.presentModes, presentMode))
+        {
+            m_presentMode = presentMode;
+            return;
+        }
+    }
+
+    // *Highly* unlikely
+    throw std::runtime_error("No present mode available.");
+}
+
+void sfvl::ContextVulkan::chooseSwapExtent(GLFWwindow* windowHandle)
+{
+    const auto& caps = m_swapChainSupport.capabilities;
+
+    if (caps.currentExtent.width != std::numeric_limits<uint32_t>::max())
+    {
+        m_extent = caps.currentExtent;
+    } else
+    {
+        int width, height;
+
+        glfwGetFramebufferSize(windowHandle, &width, &height);
+
+        m_extent = vk::Extent2D{
+          std::clamp(static_cast<uint32_t>(width), caps.minImageExtent.width, caps.maxImageExtent.width),
+          std::clamp(static_cast<uint32_t>(height), caps.minImageExtent.height, caps.maxImageExtent.height)};
+    }
 }
 
 bool sfvl::ContextVulkan::verifyExtensionsSupport(const vk::PhysicalDevice& device)

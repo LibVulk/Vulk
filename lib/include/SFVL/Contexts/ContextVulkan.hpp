@@ -36,6 +36,7 @@ public:
     static void createInstance(GLFWwindow* windowHandle);
     static ContextVulkan& getInstance();
 
+private:
     static void printAvailableValidationLayers();
     static void verifyValidationLayersSupport();
     static inline std::vector<vk::LayerProperties> getAvailableValidationLayers()
@@ -46,7 +47,20 @@ public:
     static constexpr std::array VALIDATION_LAYER_NAMES{"VK_LAYER_KHRONOS_validation"};
     static constexpr std::array REQUIRED_EXTENSION_NAMES{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
-private:
+    /**
+     * Order of preferred present modes, from most preferred to least preferred.
+     *
+     * TODO: customizable
+     */
+    static constexpr std::array PRESENT_MODES_PREFERRED{
+      vk::PresentModeKHR::eMailbox, vk::PresentModeKHR::eFifo, vk::PresentModeKHR::eFifoRelaxed,
+      vk::PresentModeKHR::eImmediate,
+
+      // TODO: Don't know what these do, will check later
+      // vk::PresentModeKHR::eSharedDemandRefresh,
+      // vk::PresentModeKHR::eSharedContinuousRefresh,
+    };
+
     struct QueueFamilyIndices
     {
         std::optional<uint32_t> graphicsFamily;
@@ -85,7 +99,11 @@ private:
     void createSurface(GLFWwindow* windowHandle);
     void pickPhysicalDevice();
     void createLogicalDevice();
-    void chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats);
+    void createSwapChain(GLFWwindow* windowHandle);
+
+    void chooseSwapSurfaceFormat();
+    void chooseSwapPresentMode();
+    void chooseSwapExtent(GLFWwindow* windowHandle);
 
     static bool verifyExtensionsSupport(const vk::PhysicalDevice& device);
 
@@ -96,7 +114,10 @@ private:
     vk::PhysicalDevice m_physicalDevice{};
     vk::Device m_device{};
     vk::SurfaceKHR m_surface{};
+
     vk::SurfaceFormatKHR m_surfaceFormat{};
+    vk::PresentModeKHR m_presentMode{};
+    vk::Extent2D m_extent{};
 
     vk::Queue m_graphicsQueue{};
     vk::Queue m_presentQueue{};
