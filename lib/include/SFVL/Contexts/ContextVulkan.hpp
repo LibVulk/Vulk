@@ -100,6 +100,7 @@ private:
     void pickPhysicalDevice();
     void createLogicalDevice();
     void createSwapChain(GLFWwindow* windowHandle);
+    void createImageViews();
 
     void chooseSwapSurfaceFormat();
     void chooseSwapPresentMode();
@@ -124,6 +125,7 @@ private:
 
     vk::SwapchainKHR m_swapChain{};
     std::vector<vk::Image> m_swapChainImages{};
+    std::vector<vk::ImageView> m_swapChainImageViews{};
     vk::Format m_swapChainFormat{};
 
     QueueFamilyIndices m_queueFamilyIndices{};

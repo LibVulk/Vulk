@@ -44,6 +44,7 @@ sfvl::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle)
     pickPhysicalDevice();
     createLogicalDevice();
     createSwapChain(windowHandle);
+    createImageViews();
 
 #if SFVL_DEBUG
     std::cout << "Selected GPU name: " << m_physicalDevice.getProperties().deviceName << std::endl;
@@ -55,6 +56,10 @@ sfvl::ContextVulkan::~ContextVulkan()
     SFVL_SCOPED_PROFILER("ContextVulkan::~ContextVulkan()");
 
     // TODO: use vk::raii
+
+    if (m_device)
+        for (auto& imageView : m_swapChainImageViews)
+            m_device.destroy(imageView);
 
     if (m_swapChain && m_device)
         m_device.destroy(m_swapChain);
@@ -288,6 +293,34 @@ void sfvl::ContextVulkan::createSwapChain(GLFWwindow* windowHandle)
 
     m_swapChainImages = m_device.getSwapchainImagesKHR(m_swapChain);
     m_swapChainFormat = m_surfaceFormat.format;
+}
+
+void sfvl::ContextVulkan::createImageViews()
+{
+    SFVL_SCOPED_PROFILER("ContextVulkan::createImageViews()");
+
+    const auto size = m_swapChainImages.size();
+    m_swapChainImageViews.reserve(size);
+
+    for (size_t i = 0; i < size; ++i)
+    {
+        vk::ImageViewCreateInfo createInfo{};
+
+        createInfo.image = m_swapChainImages[i];
+        createInfo.viewType = vk::ImageViewType::e2D;
+        createInfo.format = m_swapChainFormat;
+        createInfo.components.r = vk::ComponentSwizzle::eIdentity;
+        createInfo.components.g = vk::ComponentSwizzle::eIdentity;
+        createInfo.components.b = vk::ComponentSwizzle::eIdentity;
+        createInfo.components.a = vk::ComponentSwizzle::eIdentity;
+        createInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+        createInfo.subresourceRange.baseMipLevel = 0;
+        createInfo.subresourceRange.levelCount = 1;
+        createInfo.subresourceRange.baseArrayLayer = 0;
+        createInfo.subresourceRange.layerCount = 1;
+
+        m_swapChainImageViews.push_back(m_device.createImageView(createInfo, nullptr));
+    }
 }
 
 void sfvl::ContextVulkan::chooseSwapSurfaceFormat()
