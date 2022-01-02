@@ -11,3 +11,6 @@ add_library(
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE include/SFVL)
+
+add_shader(${PROJECT_NAME} shader.frag)
+add_shader(${PROJECT_NAME} shader.vert)
