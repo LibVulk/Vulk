@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan.hpp>  // TODO: since this adds some compiling time, we should "hide" it with forwards declarations
 
 #include <array>
 #include <memory>
@@ -36,6 +36,8 @@ public:
     static void createInstance(GLFWwindow* windowHandle);
     static ContextVulkan& getInstance();
 
+private:
+    static void printAvailableValidationLayers();
     static void verifyValidationLayersSupport();
     static inline std::vector<vk::LayerProperties> getAvailableValidationLayers()
     {
@@ -43,8 +45,22 @@ public:
     }
 
     static constexpr std::array VALIDATION_LAYER_NAMES{"VK_LAYER_KHRONOS_validation"};
+    static constexpr std::array REQUIRED_EXTENSION_NAMES{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
-private:
+    /**
+     * Order of preferred present modes, from most preferred to least preferred.
+     *
+     * TODO: customizable
+     */
+    static constexpr std::array PRESENT_MODES_PREFERRED{
+      vk::PresentModeKHR::eMailbox, vk::PresentModeKHR::eFifo, vk::PresentModeKHR::eFifoRelaxed,
+      vk::PresentModeKHR::eImmediate,
+
+      // TODO: Don't know what these do, will check later
+      // vk::PresentModeKHR::eSharedDemandRefresh,
+      // vk::PresentModeKHR::eSharedContinuousRefresh,
+    };
+
     struct QueueFamilyIndices
     {
         std::optional<uint32_t> graphicsFamily;
@@ -65,6 +81,15 @@ private:
         [[nodiscard]] bool isValid() const noexcept { return isComplete(); }
     };
 
+    struct SwapChainSupportDetails
+    {
+        vk::SurfaceCapabilitiesKHR capabilities{};
+        std::vector<vk::SurfaceFormatKHR> formats{};
+        std::vector<vk::PresentModeKHR> presentModes{};
+
+        [[nodiscard]] bool isValid() const noexcept { return !formats.empty() && !presentModes.empty(); }
+    };
+
     using QueueFamilyPropertiesList = std::vector<vk::QueueFamilyProperties>;
     using QueueFamilyEntry = std::pair<QueueFamilyPropertiesList, QueueFamilyIndices>;
 
@@ -74,19 +99,36 @@ private:
     void createSurface(GLFWwindow* windowHandle);
     void pickPhysicalDevice();
     void createLogicalDevice();
+    void createSwapChain(GLFWwindow* windowHandle);
 
-    [[nodiscard]] QueueFamilyEntry findQueueFamilies(const vk::PhysicalDevice& physicalDevice);
+    void chooseSwapSurfaceFormat();
+    void chooseSwapPresentMode();
+    void chooseSwapExtent(GLFWwindow* windowHandle);
 
-    vk::Instance m_instance{VK_NULL_HANDLE};
-    vk::PhysicalDevice m_physicalDevice{VK_NULL_HANDLE};
-    vk::Device m_device{VK_NULL_HANDLE};
-    vk::SurfaceKHR m_surface{VK_NULL_HANDLE};
+    static bool verifyExtensionsSupport(const vk::PhysicalDevice& device);
 
-    vk::Queue m_graphicsQueue{VK_NULL_HANDLE};
-    vk::Queue m_presentQueue{VK_NULL_HANDLE};
+    [[nodiscard]] QueueFamilyEntry findQueueFamilies(const vk::PhysicalDevice& physicalDevice) const noexcept;
+    [[nodiscard]] SwapChainSupportDetails querySwapChainSupport(const vk::PhysicalDevice& device) const noexcept;
 
-    QueueFamilyPropertiesList m_queueFamilyProperties{};
+    vk::Instance m_instance{};
+    vk::PhysicalDevice m_physicalDevice{};
+    vk::Device m_device{};
+    vk::SurfaceKHR m_surface{};
+
+    vk::SurfaceFormatKHR m_surfaceFormat{};
+    vk::PresentModeKHR m_presentMode{};
+    vk::Extent2D m_extent{};
+
+    vk::Queue m_graphicsQueue{};
+    vk::Queue m_presentQueue{};
+
+    vk::SwapchainKHR m_swapChain{};
+    std::vector<vk::Image> m_swapChainImages{};
+    vk::Format m_swapChainFormat{};
+
     QueueFamilyIndices m_queueFamilyIndices{};
+    QueueFamilyPropertiesList m_queueFamilyProperties{};
+    SwapChainSupportDetails m_swapChainSupport{};
 
     static std::unique_ptr<ContextVulkan> s_instance;
 };
