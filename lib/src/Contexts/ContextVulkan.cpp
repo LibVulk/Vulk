@@ -25,12 +25,15 @@
 #include <set>
 #include <string_view>
 
+#include "ScopedProfiler.hpp"
 #include "Utils.hpp"
 
 std::unique_ptr<sfvl::ContextVulkan> sfvl::ContextVulkan::s_instance{nullptr};
 
 sfvl::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle)
 {
+    SFVL_SCOPED_PROFILER("ContextVulkan::ContextVulkan()");
+
 #if SFVL_DEBUG
     // printAvailableValidationLayers();
     verifyValidationLayersSupport();
@@ -49,6 +52,8 @@ sfvl::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle)
 
 sfvl::ContextVulkan::~ContextVulkan()
 {
+    SFVL_SCOPED_PROFILER("ContextVulkan::~ContextVulkan()");
+
     // TODO: use vk::raii
 
     if (m_swapChain && m_device)
@@ -111,6 +116,8 @@ void sfvl::ContextVulkan::verifyValidationLayersSupport()
 
 void sfvl::ContextVulkan::createInstance()
 {
+    SFVL_SCOPED_PROFILER("ContextVulkan::createInstance()");
+
     uint32_t glfwExtensionCount = 0;
     const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
@@ -143,6 +150,8 @@ void sfvl::ContextVulkan::createInstance()
 
 void sfvl::ContextVulkan::createSurface(GLFWwindow* windowHandle)
 {
+    SFVL_SCOPED_PROFILER("ContextVulkan::createSurface()");
+
     VkSurfaceKHR surface;
 
     if (glfwCreateWindowSurface(m_instance, windowHandle, nullptr, &surface) != VK_SUCCESS)
@@ -153,6 +162,8 @@ void sfvl::ContextVulkan::createSurface(GLFWwindow* windowHandle)
 
 void sfvl::ContextVulkan::pickPhysicalDevice()
 {
+    SFVL_SCOPED_PROFILER("ContextVulkan::pickPhysicalDevice()");
+
     const auto& devices = m_instance.enumeratePhysicalDevices();
 
     if (devices.empty())
@@ -182,6 +193,8 @@ void sfvl::ContextVulkan::pickPhysicalDevice()
 
 void sfvl::ContextVulkan::createLogicalDevice()
 {
+    SFVL_SCOPED_PROFILER("ContextVulkan::createLogicalDevice()");
+
     static constexpr float queuePriority = 1.f;
 
     std::vector<vk::DeviceQueueCreateInfo> queueCreateInfoList{};
@@ -228,6 +241,8 @@ void sfvl::ContextVulkan::createLogicalDevice()
 
 void sfvl::ContextVulkan::createSwapChain(GLFWwindow* windowHandle)
 {
+    SFVL_SCOPED_PROFILER("ContextVulkan::createSwapChain()");
+
     chooseSwapSurfaceFormat();
     chooseSwapPresentMode();
     chooseSwapExtent(windowHandle);
@@ -333,6 +348,8 @@ void sfvl::ContextVulkan::chooseSwapExtent(GLFWwindow* windowHandle)
 
 bool sfvl::ContextVulkan::verifyExtensionsSupport(const vk::PhysicalDevice& device)
 {
+    SFVL_SCOPED_PROFILER("ContextVulkan::verifyExtensionsSupport()");
+
     const auto& currentExts = device.enumerateDeviceExtensionProperties();
 
     bool allValid = true;
@@ -354,6 +371,8 @@ bool sfvl::ContextVulkan::verifyExtensionsSupport(const vk::PhysicalDevice& devi
 sfvl::ContextVulkan::QueueFamilyEntry
 sfvl::ContextVulkan::findQueueFamilies(const vk::PhysicalDevice& physicalDevice) const noexcept
 {
+    SFVL_SCOPED_PROFILER("ContextVulkan::findQueueFamilies()");
+
     auto queueFamilies = physicalDevice.getQueueFamilyProperties();
     QueueFamilyIndices indices{};
 
