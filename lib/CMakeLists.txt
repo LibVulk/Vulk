@@ -1,6 +1,7 @@
 add_library(
         ${PROJECT_NAME} STATIC
         include/SFVL/Time.hpp
+        include/SFVL/Vec3.hpp
         src/Window.cpp include/SFVL/Window.hpp
         src/Contexts/ContextGLFW.cpp include/SFVL/Contexts/ContextGLFW.hpp
         src/Error.cpp include/SFVL/Error.hpp
