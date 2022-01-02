@@ -18,7 +18,6 @@
  */
 
 #include "Contexts/ContextVulkan.hpp"
-#include "ScopedProfiler.hpp"
 
 #include <GLFW/glfw3.h>
 
@@ -26,6 +25,7 @@
 #include <set>
 #include <string_view>
 
+#include "ScopedProfiler.hpp"
 #include "Utils.hpp"
 
 std::unique_ptr<sfvl::ContextVulkan> sfvl::ContextVulkan::s_instance{nullptr};
