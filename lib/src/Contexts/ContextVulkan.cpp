@@ -26,6 +26,7 @@
 #include <string_view>
 
 #include "ScopedProfiler.hpp"
+#include "Shader.hpp"
 #include "Utils.hpp"
 
 std::unique_ptr<sfvl::ContextVulkan> sfvl::ContextVulkan::s_instance{nullptr};
@@ -45,6 +46,7 @@ sfvl::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle)
     createLogicalDevice();
     createSwapChain(windowHandle);
     createImageViews();
+    createGraphicsPipeline();
 
 #if SFVL_DEBUG
     std::cout << "Selected GPU name: " << m_physicalDevice.getProperties().deviceName << std::endl;
@@ -321,6 +323,12 @@ void sfvl::ContextVulkan::createImageViews()
 
         m_swapChainImageViews.push_back(m_device.createImageView(createInfo, nullptr));
     }
+}
+
+void sfvl::ContextVulkan::createGraphicsPipeline()
+{
+    Shader vert{m_device, "shaders/sfvl/shader.vert.spv", Shader::Type::eVertex};
+    Shader frag{m_device, "shaders/sfvl/shader.frag.spv", Shader::Type::eFragment};
 }
 
 void sfvl::ContextVulkan::chooseSwapSurfaceFormat()

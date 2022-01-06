@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <string>
 #include <vector>
 
 namespace sfvl::utils {
@@ -24,4 +25,6 @@ template<typename T, typename Allocator>
 {
     return std::find(vector.cbegin(), vector.cend(), element) != vector.cend();
 }
+
+std::vector<char> fileToBinary(const char* filePath);
 }  // namespace sfvl::utils
