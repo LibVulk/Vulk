@@ -21,11 +21,10 @@
 
 #include <ostream>
 
-#include <Vec2.hpp>
+#include <SFVL/Vec2.hpp>
 
 namespace sfvl {
-	template<typename T>
-
+template<typename T>
 struct Rect
 {
     T left;
@@ -35,40 +34,40 @@ struct Rect
 
     constexpr Rect() = default;
     constexpr Rect(T aLeft, T aTop, T aWidth, T aHeight) : left{aLeft}, top{aTop}, width{aWidth}, height{aHeight} {}
-    constexpr Rect(const Vec2& pos, const Vec2& size) : left{pos.x}, top{pos.y}, width{size.x}, height{size.y} {}
+    constexpr Rect(const Vec2<T>& pos, const Vec2<T>& size) : left{pos.x}, top{pos.y}, width{size.x}, height{size.y} {}
 
-    constexpr bool operator==(const Rect& right)
+    constexpr bool operator==(const Rect<T>& right)
     {
         return left == right.left && top == right.top && width == right.width && height == right.height; 
     }
 
-    constexpr bool operator!=(const Rect& right)
+    constexpr bool operator!=(const Rect<T>& right)
     {
         return left != right.left || top != right.top || width != right.width || height != right.height;
     }
 
-    [[nodiscard]] constexpr static bool contains(T x, T y)
+    [[nodiscard]] constexpr bool contains(T x, T y) const noexcept
     { 
-        if (left < x && top < y)
+        if (left < x && top > y)
             return true;
         return false;
-    } const noexcept
+    }
 
-    [[nodiscard]] constexpr static bool contains(const Vec2& point)
+    [[nodiscard]] constexpr bool contains(const Vec2<T>& point) const noexcept
     {
-        if (left < point.x && top < point.y)
+        if (left < point.x && top > point.y)
             return true;
         return false;            
-    } const noexcept
+    }
 
-    constexpr friend std::ostream& operator<<(std::ostream& os, const Rect& rect) noexcept
+    constexpr friend std::ostream& operator<<(std::ostream& os, const Rect<T>& rect) noexcept
     {
         return os << rect.left << ' ' << rect.top << ' ' << rect.width << ' ' << rect.height;
     }
 };
 
-using FloatRect = Rect<float>;
-using DoubleRect = Rect<double>;
-using IntRect = Rect<int>;
-using UnsignedRect = Rect<unsigned int>;
+using Rectf = Rect<float>;
+using Rectd = Rect<double>;
+using Recti = Rect<int>;
+using Rectu = Rect<unsigned int>;
 } // namespace sfvl
