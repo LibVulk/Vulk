@@ -14,4 +14,25 @@
 **   limitations under the License.
 */
 
-#include "SFVL/Utils.hpp"
+#include "Utils.hpp"
+
+#include <fstream>
+#include <vector>
+
+std::vector<char> sfvl::utils::fileToBinary(const char* filePath)
+{
+    std::ifstream file{filePath, std::ios::ate | std::ios::binary};
+
+    if (!file.is_open())
+        // TODO: indicate permission error, not found, ...
+        throw std::runtime_error(std::string(filePath) + ": unable to open file");
+
+    // TODO: there has to be a better way for this...
+    const auto fileSize = static_cast<size_t>(file.tellg());
+    std::vector<char> buffer(fileSize);
+
+    file.seekg(0);
+    file.read(buffer.data(), static_cast<long>(fileSize));
+
+    return buffer;
+}

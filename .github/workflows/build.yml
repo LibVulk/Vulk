@@ -72,7 +72,7 @@ jobs:
           mkdir build
           cd build
           ${{ matrix.cxx-override }} \
-          cmake -DCMAKE_BUILD_TYPE=${{ matrix.mode }} ..
+          cmake -DCMAKE_BUILD_TYPE=${{ matrix.mode }} -DSFVL_ENABLE_PCH=OFF ..
 
       - name: Build
         working-directory: build

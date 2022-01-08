@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <vulkan/vulkan.hpp>  // TODO: since this adds some compiling time, we should "hide" it with forwards declarations
+#include <vulkan/vulkan.hpp>
 
 #include <array>
 #include <memory>
@@ -101,6 +101,7 @@ private:
     void createLogicalDevice();
     void createSwapChain(GLFWwindow* windowHandle);
     void createImageViews();
+    void createGraphicsPipeline();
 
     void chooseSwapSurfaceFormat();
     void chooseSwapPresentMode();

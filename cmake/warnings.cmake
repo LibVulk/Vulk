@@ -45,7 +45,7 @@ set(CLANG_WARNINGS
         -Wimplicit-fallthrough # warn on statements that fallthrough without an explicit annotation
         )
 
-if (WARNINGS_AS_ERRORS)
+if (${PROJECT_PREFIX}_WARNINGS_AS_ERRORS)
     set(CLANG_WARNINGS ${CLANG_WARNINGS} -Werror)
     set(MSVC_WARNINGS ${MSVC_WARNINGS} /WX)
 endif ()
