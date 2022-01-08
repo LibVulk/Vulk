@@ -21,14 +21,13 @@
 
 #include <iostream>
 
+#include "ScopedProfiler.hpp"
 #include "Utils.hpp"
 
 sfvl::Shader::Shader(vk::Device& device, const char* filePath, sfvl::Shader::Type type)
-    : m_buffer{sfvl::utils::fileToBinary(filePath)}, m_type{type}
+    : m_device{device}, m_buffer{sfvl::utils::fileToBinary(filePath)}, m_type{type}
 {
-#if SFVL_DEBUG
-    std::cerr << "Shader " << filePath << " loaded (" << m_buffer.size() << " bytes)\n";
-#endif
+    SFVL_SCOPED_PROFILER("Shader::Shader()");
 
     vk::ShaderModuleCreateInfo shaderModuleCreateInfo{};
     shaderModuleCreateInfo.codeSize = m_buffer.size();

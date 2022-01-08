@@ -34,7 +34,7 @@ public:
     ~Shader();
 
 private:
-    vk::Device m_device{};  // TODO: Remove once vk::raii is implemented
+    vk::Device m_device;  // TODO: Remove once vk::raii is implemented
 
     std::vector<char> m_buffer{};
     vk::ShaderModule m_shaderModule{};

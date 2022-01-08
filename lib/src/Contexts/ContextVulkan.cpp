@@ -61,14 +61,14 @@ sfvl::ContextVulkan::~ContextVulkan()
 
     if (m_device)
     {
+        if (m_pipelineLayout)
+            m_device.destroy(m_pipelineLayout);
+
         for (auto& imageView : m_swapChainImageViews)
             m_device.destroy(imageView);
 
         if (m_swapChain)
             m_device.destroy(m_swapChain);
-
-        if (m_pipelineLayout)
-            m_device.destroy(m_pipelineLayout);
     }
 
     if (m_surface)
