@@ -129,6 +129,9 @@ private:
     std::vector<vk::ImageView> m_swapChainImageViews{};
     vk::Format m_swapChainFormat{};
 
+    vk::Viewport m_viewport{};
+    vk::PipelineLayout m_pipelineLayout{};
+
     QueueFamilyIndices m_queueFamilyIndices{};
     QueueFamilyPropertiesList m_queueFamilyProperties{};
     SwapChainSupportDetails m_swapChainSupport{};

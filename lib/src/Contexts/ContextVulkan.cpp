@@ -60,11 +60,16 @@ sfvl::ContextVulkan::~ContextVulkan()
     // TODO: use vk::raii
 
     if (m_device)
+    {
+        if (m_pipelineLayout)
+            m_device.destroy(m_pipelineLayout);
+
         for (auto& imageView : m_swapChainImageViews)
             m_device.destroy(imageView);
 
-    if (m_swapChain && m_device)
-        m_device.destroy(m_swapChain);
+        if (m_swapChain)
+            m_device.destroy(m_swapChain);
+    }
 
     if (m_surface)
         m_instance.destroy(m_surface);
@@ -327,8 +332,86 @@ void sfvl::ContextVulkan::createImageViews()
 
 void sfvl::ContextVulkan::createGraphicsPipeline()
 {
+    SFVL_SCOPED_PROFILER("ContextVulkan::createGraphicsPipeline()");
+
     Shader vert{m_device, "shaders/sfvl/shader.vert.spv", Shader::Type::eVertex};
     Shader frag{m_device, "shaders/sfvl/shader.frag.spv", Shader::Type::eFragment};
+
+    vk::PipelineVertexInputStateCreateInfo vertexInputInfo{};
+    vertexInputInfo.vertexBindingDescriptionCount = 0;
+    vertexInputInfo.vertexAttributeDescriptionCount = 0;
+
+    vk::PipelineInputAssemblyStateCreateInfo inputAssembly{};
+    inputAssembly.topology = vk::PrimitiveTopology::eTriangleList;
+    inputAssembly.primitiveRestartEnable = false;
+
+    m_viewport.x = 0;
+    m_viewport.y = 0;
+    m_viewport.width = static_cast<float>(m_extent.width);
+    m_viewport.height = static_cast<float>(m_extent.height);
+    m_viewport.minDepth = 0;
+    m_viewport.maxDepth = 1;
+
+    vk::Rect2D scissor{};
+    scissor.offset = vk::Offset2D{0, 0};
+    scissor.extent = m_extent;
+
+    vk::PipelineViewportStateCreateInfo viewportState{};
+    viewportState.viewportCount = 1;
+    viewportState.pViewports = &m_viewport;
+    viewportState.scissorCount = 1;
+    viewportState.pScissors = &scissor;
+
+    vk::PipelineRasterizationStateCreateInfo rasterizer{};
+    rasterizer.depthClampEnable = false;
+    rasterizer.rasterizerDiscardEnable = false;
+    rasterizer.polygonMode = vk::PolygonMode::eFill;
+    rasterizer.lineWidth = 1;
+    rasterizer.cullMode = vk::CullModeFlagBits::eBack;
+    rasterizer.frontFace = vk::FrontFace::eClockwise;
+    rasterizer.depthBiasEnable = false;
+
+    vk::PipelineMultisampleStateCreateInfo multisampling{};
+    multisampling.sampleShadingEnable = false;
+    multisampling.rasterizationSamples = vk::SampleCountFlagBits::e1;
+
+    // temporary manual switch to test things, should be customizable at runtime later
+    static constexpr bool tmpTestEnabled = false;
+
+    vk::PipelineColorBlendAttachmentState colorBlendAttachment{};
+    colorBlendAttachment.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+                                          vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
+    if constexpr (tmpTestEnabled)
+    {
+        colorBlendAttachment.blendEnable = true;
+        colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
+        colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
+        colorBlendAttachment.colorBlendOp = vk::BlendOp::eAdd;
+        colorBlendAttachment.srcAlphaBlendFactor = vk::BlendFactor::eOne;
+        colorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eZero;
+        colorBlendAttachment.alphaBlendOp = vk::BlendOp::eAdd;
+    } else
+    {
+        colorBlendAttachment.blendEnable = false;
+    }
+
+    vk::PipelineColorBlendStateCreateInfo colorBlending{};
+    colorBlending.logicOpEnable = tmpTestEnabled;
+    colorBlending.logicOp = vk::LogicOp::eCopy;
+    colorBlending.attachmentCount = 1;
+    colorBlending.pAttachments = &colorBlendAttachment;
+
+    std::array dynamicStatesArray = {vk::DynamicState::eViewport, vk::DynamicState::eLineWidth};
+    vk::PipelineDynamicStateCreateInfo dynamicState{};
+    dynamicState.dynamicStateCount = dynamicStatesArray.size();
+    dynamicState.pDynamicStates = dynamicStatesArray.data();
+
+    vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo{};  // empty for now
+
+    m_pipelineLayout = m_device.createPipelineLayout(pipelineLayoutCreateInfo);
+
+    if (!m_pipelineLayout)
+        throw std::runtime_error("Failed to create pipeline layout");
 }
 
 void sfvl::ContextVulkan::chooseSwapSurfaceFormat()
