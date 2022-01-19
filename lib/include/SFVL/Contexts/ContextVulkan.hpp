@@ -101,6 +101,7 @@ private:
     void createLogicalDevice();
     void createSwapChain(GLFWwindow* windowHandle);
     void createImageViews();
+    void createRenderPass();
     void createGraphicsPipeline();
 
     void chooseSwapSurfaceFormat();
@@ -130,7 +131,9 @@ private:
     vk::Format m_swapChainFormat{};
 
     vk::Viewport m_viewport{};
+    vk::RenderPass m_renderPass{};
     vk::PipelineLayout m_pipelineLayout{};
+    vk::Pipeline m_pipeline{};
 
     QueueFamilyIndices m_queueFamilyIndices{};
     QueueFamilyPropertiesList m_queueFamilyProperties{};

@@ -33,11 +33,18 @@ public:
     Shader(vk::Device& device, const char* filePath, Type type);
     ~Shader();
 
+    [[nodiscard]] const vk::PipelineShaderStageCreateInfo& getShaderStageCreateInfo() const noexcept
+    {
+        return m_pipelineShaderStageCreateInfo;
+    }
+
 private:
     vk::Device m_device;  // TODO: Remove once vk::raii is implemented
 
     std::vector<char> m_buffer{};
     vk::ShaderModule m_shaderModule{};
+    vk::PipelineShaderStageCreateInfo m_pipelineShaderStageCreateInfo{};
+
     Type m_type{};
 };
 }  // namespace sfvl

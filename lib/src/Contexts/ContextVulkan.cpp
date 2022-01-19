@@ -46,6 +46,7 @@ sfvl::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle)
     createLogicalDevice();
     createSwapChain(windowHandle);
     createImageViews();
+    createRenderPass();
     createGraphicsPipeline();
 
 #if SFVL_DEBUG
@@ -61,8 +62,14 @@ sfvl::ContextVulkan::~ContextVulkan()
 
     if (m_device)
     {
+        if (m_pipeline)
+            m_device.destroy(m_pipeline);
+
         if (m_pipelineLayout)
             m_device.destroy(m_pipelineLayout);
+
+        if (m_renderPass)
+            m_device.destroy(m_renderPass);
 
         for (auto& imageView : m_swapChainImageViews)
             m_device.destroy(imageView);
@@ -330,12 +337,50 @@ void sfvl::ContextVulkan::createImageViews()
     }
 }
 
+void sfvl::ContextVulkan::createRenderPass()
+{
+    SFVL_SCOPED_PROFILER("ContextVulkan::createRenderPass()");
+
+    vk::AttachmentDescription colorAttachment{};
+    colorAttachment.format = m_swapChainFormat;
+    colorAttachment.samples = vk::SampleCountFlagBits::e1;  // TODO: modifiable
+    colorAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+    colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
+    colorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+    colorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+    colorAttachment.initialLayout = vk::ImageLayout::eUndefined;
+    colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+
+    vk::AttachmentReference colorAttachmentRef{};
+    colorAttachmentRef.attachment = 0;
+    colorAttachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
+
+    vk::SubpassDescription subpass{};
+    subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments = &colorAttachmentRef;
+
+    vk::RenderPassCreateInfo renderPassCreateInfo{};
+    renderPassCreateInfo.attachmentCount = 1;
+    renderPassCreateInfo.pAttachments = &colorAttachment;
+    renderPassCreateInfo.subpassCount = 1;
+    renderPassCreateInfo.pSubpasses = &subpass;
+
+    m_renderPass = m_device.createRenderPass(renderPassCreateInfo);
+
+    if (!m_renderPass)
+        throw std::runtime_error("Failed to create the render pass");
+}
+
 void sfvl::ContextVulkan::createGraphicsPipeline()
 {
     SFVL_SCOPED_PROFILER("ContextVulkan::createGraphicsPipeline()");
 
     Shader vert{m_device, "shaders/sfvl/shader.vert.spv", Shader::Type::eVertex};
     Shader frag{m_device, "shaders/sfvl/shader.frag.spv", Shader::Type::eFragment};
+
+    vk::PipelineShaderStageCreateInfo shaderStages[] = {vert.getShaderStageCreateInfo(),
+                                                        frag.getShaderStageCreateInfo()};
 
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.vertexBindingDescriptionCount = 0;
@@ -412,6 +457,29 @@ void sfvl::ContextVulkan::createGraphicsPipeline()
 
     if (!m_pipelineLayout)
         throw std::runtime_error("Failed to create pipeline layout");
+
+    vk::GraphicsPipelineCreateInfo pipelineInfo{};
+    pipelineInfo.stageCount = 2;
+    pipelineInfo.pStages = shaderStages;
+    pipelineInfo.pVertexInputState = &vertexInputInfo;
+    pipelineInfo.pInputAssemblyState = &inputAssembly;
+    pipelineInfo.pViewportState = &viewportState;
+    pipelineInfo.pRasterizationState = &rasterizer;
+    pipelineInfo.pMultisampleState = &multisampling;
+    pipelineInfo.pDepthStencilState = nullptr;
+    pipelineInfo.pColorBlendState = &colorBlending;
+    pipelineInfo.pDynamicState = nullptr;
+    pipelineInfo.layout = m_pipelineLayout;
+    pipelineInfo.renderPass = m_renderPass;
+    pipelineInfo.subpass = 0;
+
+    // Useless now, but will be useful and more efficient when modifying the pipeline
+    // I added it as a reminder :)
+    pipelineInfo.basePipelineHandle = nullptr;
+    pipelineInfo.basePipelineIndex = -1;
+
+    if (m_device.createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, &m_pipeline) != vk::Result::eSuccess)
+        throw std::runtime_error("Failed to create the graphics pipeline");
 }
 
 void sfvl::ContextVulkan::chooseSwapSurfaceFormat()

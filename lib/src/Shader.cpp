@@ -38,12 +38,9 @@ sfvl::Shader::Shader(vk::Device& device, const char* filePath, sfvl::Shader::Typ
     if (!m_shaderModule)
         throw std::runtime_error("Unable to create Vulkan Shader module");
 
-    vk::PipelineShaderStageCreateInfo pipelineShaderStageCreateInfo{};
-    pipelineShaderStageCreateInfo.stage = type;
-    pipelineShaderStageCreateInfo.module = m_shaderModule;
-    pipelineShaderStageCreateInfo.pName = "main";
-
-    (void) pipelineShaderStageCreateInfo;
+    m_pipelineShaderStageCreateInfo.stage = type;
+    m_pipelineShaderStageCreateInfo.module = m_shaderModule;
+    m_pipelineShaderStageCreateInfo.pName = "main";
 }
 
 sfvl::Shader::~Shader()
