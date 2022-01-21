@@ -4,6 +4,7 @@ add_library(
         include/SFVL/Vec2.hpp
         include/SFVL/Vec3.hpp
         include/SFVL/Rect.hpp
+        include/SFVL/Mat3.hpp
         src/Window.cpp include/SFVL/Window.hpp
         src/Contexts/ContextGLFW.cpp include/SFVL/Contexts/ContextGLFW.hpp
         src/Error.cpp include/SFVL/Error.hpp
