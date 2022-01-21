@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include <ostream>
-
 #include <SFVL/Vec2.hpp>
+
+#include <ostream>
 
 namespace sfvl {
 template<typename T>
@@ -38,7 +38,7 @@ struct Rect
 
     constexpr bool operator==(const Rect<T>& right)
     {
-        return left == right.left && top == right.top && width == right.width && height == right.height; 
+        return left == right.left && top == right.top && width == right.width && height == right.height;
     }
 
     constexpr bool operator!=(const Rect<T>& right)
@@ -47,7 +47,7 @@ struct Rect
     }
 
     [[nodiscard]] constexpr bool contains(T x, T y) const noexcept
-    { 
+    {
         if (left < x && top > y)
             return true;
         return false;
@@ -57,7 +57,7 @@ struct Rect
     {
         if (left < point.x && top > point.y)
             return true;
-        return false;            
+        return false;
     }
 
     constexpr friend std::ostream& operator<<(std::ostream& os, const Rect<T>& rect) noexcept
@@ -70,4 +70,4 @@ using Rectf = Rect<float>;
 using Rectd = Rect<double>;
 using Recti = Rect<int>;
 using Rectu = Rect<unsigned int>;
-} // namespace sfvl
+}  // namespace sfvl
