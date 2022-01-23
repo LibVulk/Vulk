@@ -27,7 +27,6 @@
 
 namespace sfvl {
 template<typename T>
-
 struct Mat3
 {
     std::array<T, 9> m{
@@ -44,7 +43,7 @@ struct Mat3
     {
     }
 
-    constexpr Mat3 inverse() noexcept
+    constexpr Mat3 inverse() const noexcept
     {
         auto cfMatrix = coFactor();
         auto d = determinant();
@@ -53,7 +52,7 @@ struct Mat3
                     cfMatrix.m[5] / d, cfMatrix.m[6] / d, cfMatrix.m[7] / d, cfMatrix.m[8] / d};
     }
 
-    constexpr Mat3 coFactor() noexcept
+    constexpr Mat3 coFactor() const noexcept
     {
         return Mat3{
           ((m[4] * m[8]) - (m[5] * m[7])),  -((m[3] * m[8]) - (m[5] * m[6])), ((m[3] * m[7]) - (m[4] * m[6])),
@@ -61,13 +60,13 @@ struct Mat3
           ((m[1] * m[5]) - (m[2] * m[4])),  -((m[0] * m[5]) - (m[2] * m[3])), ((m[0] * m[4]) - (m[1] * m[3]))};
     }
 
-    constexpr T determinant() noexcept
+    constexpr T determinant() const noexcept
     {
         auto cfMatrix = coFactor();
         return ((m[0] * cfMatrix.m[0]) + (m[1] * cfMatrix.m[1]) + (m[2] * cfMatrix.m[2]));
     }
 
-    constexpr friend std::ostream& operator<<(std::ostream& os, const Mat3 mat3) noexcept
+    constexpr friend std::ostream& operator<<(std::ostream& os, const Mat3& mat3) noexcept
     {
         return os << mat3.m[0] << ' ' << mat3.m[1] << ' ' << mat3.m[2] << '\n'
                   << mat3.m[3] << ' ' << mat3.m[4] << ' ' << mat3.m[5] << '\n'

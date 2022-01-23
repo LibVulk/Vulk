@@ -36,12 +36,12 @@ struct Rect
     constexpr Rect(T aLeft, T aTop, T aWidth, T aHeight) : left{aLeft}, top{aTop}, width{aWidth}, height{aHeight} {}
     constexpr Rect(const Vec2<T>& pos, const Vec2<T>& size) : left{pos.x}, top{pos.y}, width{size.x}, height{size.y} {}
 
-    constexpr bool operator==(const Rect<T>& right)
+    constexpr bool operator==(const Rect<T>& right) const noexcept
     {
         return left == right.left && top == right.top && width == right.width && height == right.height;
     }
 
-    constexpr bool operator!=(const Rect<T>& right)
+    constexpr bool operator!=(const Rect<T>& right) const noexcept
     {
         return left != right.left || top != right.top || width != right.width || height != right.height;
     }
