@@ -24,7 +24,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace sfvl {
+namespace vulk {
 class Shader
 {
 public:
@@ -47,4 +47,4 @@ private:
 
     Type m_type{};
 };
-}  // namespace sfvl
+}  // namespace vulk

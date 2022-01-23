@@ -1,2 +1,2 @@
-# SFVL
-Simple and Fast Vulkan Library
+# Vulk
+Vulkan, but shortened

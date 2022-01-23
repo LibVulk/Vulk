@@ -19,7 +19,7 @@
 #include <fstream>
 #include <vector>
 
-std::vector<char> sfvl::utils::fileToBinary(const char* filePath)
+std::vector<char> vulk::utils::fileToBinary(const char* filePath)
 {
     std::ifstream file{filePath, std::ios::ate | std::ios::binary};
 

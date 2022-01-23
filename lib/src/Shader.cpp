@@ -24,10 +24,10 @@
 #include "ScopedProfiler.hpp"
 #include "Utils.hpp"
 
-sfvl::Shader::Shader(vk::Device& device, const char* filePath, sfvl::Shader::Type type)
-    : m_device{device}, m_buffer{sfvl::utils::fileToBinary(filePath)}, m_type{type}
+vulk::Shader::Shader(vk::Device& device, const char* filePath, vulk::Shader::Type type)
+    : m_device{device}, m_buffer{vulk::utils::fileToBinary(filePath)}, m_type{type}
 {
-    SFVL_SCOPED_PROFILER("Shader::Shader()");
+    VULK_SCOPED_PROFILER("Shader::Shader()");
 
     vk::ShaderModuleCreateInfo shaderModuleCreateInfo{};
     shaderModuleCreateInfo.codeSize = m_buffer.size();
@@ -43,7 +43,7 @@ sfvl::Shader::Shader(vk::Device& device, const char* filePath, sfvl::Shader::Typ
     m_pipelineShaderStageCreateInfo.pName = "main";
 }
 
-sfvl::Shader::~Shader()
+vulk::Shader::~Shader()
 {
     if (m_device && m_shaderModule)
         m_device.destroy(m_shaderModule);

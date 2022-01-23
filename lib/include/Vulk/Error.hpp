@@ -19,38 +19,6 @@
 
 #pragma once
 
-#include <chrono>
-#include <functional>
-#include <optional>
-#include <string>
-
-#include "Time.hpp"
-
-namespace sfvl {
-class FrameManager final
-{
-public:
-    using OnSecondCallback = std::function<void(const FrameManager& frameManager)>;
-
-    FrameManager();
-
-    void update() noexcept;
-
-    void setOnSecondCallback(const OnSecondCallback& func) noexcept { m_onSecondCallback = func; }
-
-    [[nodiscard]] auto getDeltaTime() const noexcept { return m_deltaTime; }
-    [[nodiscard]] auto getFramerate() const noexcept { return m_framerate; }
-    [[nodiscard]] std::string getFramerateString() const noexcept;
-
-private:
-    Duration m_duration{};
-    TimePoint m_lastFrame{};
-    TimePoint m_lastSecond{};
-
-    double m_deltaTime{};
-    uint32_t m_framerate{};
-    uint32_t m_frameCounter{};
-
-    std::optional<OnSecondCallback> m_onSecondCallback{std::nullopt};
-};
-}  // namespace sfvl
+namespace vulk::utils {
+[[nodiscard]] const char* getGLFWError() noexcept;
+}

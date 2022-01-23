@@ -17,16 +17,16 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include <SFVL/Window.hpp>
+#include <Vulk/Window.hpp>
 
 #include <iostream>
 
 int main()
 {
-    sfvl::Window win{800, 600, "Vulkan window"};
+    vulk::Window win{800, 600, "Vulkan window"};
 
     win.getFrameManager().setOnSecondCallback(
-      [](const sfvl::FrameManager& frameManager) { std::cout << frameManager.getFramerateString() << std::endl; });
+      [](const vulk::FrameManager& frameManager) { std::cout << frameManager.getFramerateString() << std::endl; });
 
     while (win.isOpen())
     {

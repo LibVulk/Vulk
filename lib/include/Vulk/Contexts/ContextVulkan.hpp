@@ -27,7 +27,7 @@
 
 #include "Window.hpp"
 
-namespace sfvl {
+namespace vulk {
 class ContextVulkan
 {
 public:
@@ -141,4 +141,4 @@ private:
 
     static std::unique_ptr<ContextVulkan> s_instance;
 };
-}  // namespace sfvl
+}  // namespace vulk

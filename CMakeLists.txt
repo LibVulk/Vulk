@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
-project(sfvl LANGUAGES C CXX)
+project(vulk LANGUAGES C CXX)
 
 set(CMAKE_VERBOSE_MAKEFILE OFF) # turn on to debug Makefile builds
 
-set(PROJECT_PREFIX SFVL)
+set(PROJECT_PREFIX VULK)
 
 if (NOT "${CMAKE_CXX_STANDARD}")
     set(CMAKE_CXX_STANDARD 20)

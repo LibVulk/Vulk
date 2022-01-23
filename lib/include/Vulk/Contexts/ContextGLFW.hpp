@@ -19,33 +19,24 @@
 
 #pragma once
 
-#include "FrameManager.hpp"
+#include <memory>
 
-struct GLFWwindow;
-
-namespace sfvl {
-class Window
+namespace vulk {
+class ContextGLFW
 {
 public:
-    Window(int width, int height, const char* title);
-    ~Window();
+    ~ContextGLFW();
 
-    Window(Window&& rhs) noexcept;
-    Window& operator=(Window&& rhs) noexcept;
+    static ContextGLFW& getInstance();
 
-    Window(const Window&) = delete;
-    Window& operator=(const Window&) = delete;
-
-    void display();
-    void pollEvents();
-    void close() noexcept;
-
-    [[nodiscard]] bool isOpen() const noexcept;
-    [[nodiscard]] FrameManager& getFrameManager() noexcept { return m_frameManager; }
-    [[nodiscard]] const FrameManager& getFrameManager() const noexcept { return m_frameManager; }
+    /**
+     * Makes sure a valid GLFW context is created
+     */
+    inline static void ensureInstance() { getInstance(); }
 
 private:
-    GLFWwindow* m_windowHandle{nullptr};
-    FrameManager m_frameManager{};
+    ContextGLFW();
+
+    static std::unique_ptr<ContextGLFW> s_instance;
 };
-}  // namespace sfvl
+}  // namespace vulk

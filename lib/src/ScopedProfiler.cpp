@@ -22,11 +22,11 @@
 #include <iomanip>
 #include <iostream>
 
-sfvl::utils::ScopedProfiler::ScopedProfiler(const char* name) noexcept : m_start{Clock::now()}, m_name{name}
+vulk::utils::ScopedProfiler::ScopedProfiler(const char* name) noexcept : m_start{Clock::now()}, m_name{name}
 {
 }
 
-sfvl::utils::ScopedProfiler::~ScopedProfiler()
+vulk::utils::ScopedProfiler::~ScopedProfiler()
 {
     const auto end = Clock::now();
     const DurationSeconds durationSeconds = end - m_start;
