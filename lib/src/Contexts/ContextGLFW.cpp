@@ -25,20 +25,20 @@
 
 #include "Error.hpp"
 
-std::unique_ptr<sfvl::ContextGLFW> sfvl::ContextGLFW::s_instance{nullptr};
+std::unique_ptr<vulk::ContextGLFW> vulk::ContextGLFW::s_instance{nullptr};
 
-sfvl::ContextGLFW::ContextGLFW()
+vulk::ContextGLFW::ContextGLFW()
 {
     if (glfwInit() != GLFW_TRUE)
         throw std::runtime_error(utils::getGLFWError());
 }
 
-sfvl::ContextGLFW::~ContextGLFW()
+vulk::ContextGLFW::~ContextGLFW()
 {
     glfwTerminate();
 }
 
-sfvl::ContextGLFW& sfvl::ContextGLFW::getInstance()
+vulk::ContextGLFW& vulk::ContextGLFW::getInstance()
 {
     if (!s_instance)
         s_instance = std::unique_ptr<ContextGLFW>{new ContextGLFW};

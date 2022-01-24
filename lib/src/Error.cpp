@@ -21,7 +21,7 @@
 
 #include <GLFW/glfw3.h>
 
-const char* sfvl::utils::getGLFWError() noexcept
+const char* vulk::utils::getGLFWError() noexcept
 {
     const char* error;
 

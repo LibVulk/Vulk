@@ -18,7 +18,7 @@
 
 #include <vector>
 
-namespace sfvl::utils {
+namespace vulk::utils {
 template<typename T, typename Allocator>
 [[nodiscard]] bool vectorContains(const std::vector<T, Allocator>& vector, const T& element)
 {
@@ -26,4 +26,4 @@ template<typename T, typename Allocator>
 }
 
 std::vector<char> fileToBinary(const char* filePath);
-}  // namespace sfvl::utils
+}  // namespace vulk::utils

@@ -20,36 +20,37 @@
 #pragma once
 
 #include <chrono>
-#include <utility>
+#include <functional>
+#include <optional>
+#include <string>
 
-namespace sfvl::utils {
-class ScopedProfiler final
+#include "Time.hpp"
+
+namespace vulk {
+class FrameManager final
 {
 public:
-    using Clock = std::chrono::high_resolution_clock;
-    using TimePoint = decltype(Clock::now());
-    using DurationSeconds = std::chrono::duration<double>;
-    using DurationMillis = std::chrono::duration<double, std::milli>;
+    using OnSecondCallback = std::function<void(const FrameManager& frameManager)>;
 
-    explicit ScopedProfiler(const char* name) noexcept;
-    ~ScopedProfiler();
+    FrameManager();
 
-    ScopedProfiler(ScopedProfiler&&) = delete;
-    ScopedProfiler(const ScopedProfiler&) = delete;
-    ScopedProfiler& operator=(ScopedProfiler&&) = delete;
-    ScopedProfiler& operator=(const ScopedProfiler&) = delete;
+    void update() noexcept;
+
+    void setOnSecondCallback(const OnSecondCallback& func) noexcept { m_onSecondCallback = func; }
+
+    [[nodiscard]] auto getDeltaTime() const noexcept { return m_deltaTime; }
+    [[nodiscard]] auto getFramerate() const noexcept { return m_framerate; }
+    [[nodiscard]] std::string getFramerateString() const noexcept;
 
 private:
-    const TimePoint m_start;
-    const char* const m_name;
+    Duration m_duration{};
+    TimePoint m_lastFrame{};
+    TimePoint m_lastSecond{};
+
+    double m_deltaTime{};
+    uint32_t m_framerate{};
+    uint32_t m_frameCounter{};
+
+    std::optional<OnSecondCallback> m_onSecondCallback{std::nullopt};
 };
-}  // namespace sfvl::utils
-
-#define SFVL_STR_IMPL(x, y) x##y
-#define SFVL_STR(x, y)      SFVL_STR_IMPL(x, y)
-
-#if SFVL_WITH_SCOPED_PROFILER
-    #define SFVL_SCOPED_PROFILER(x) const sfvl::utils::ScopedProfiler SFVL_STR(_SCOPED_PROFILER_, __LINE__)(x)
-#else
-    #define SFVL_SCOPED_PROFILER(x) (void) 0
-#endif
+}  // namespace vulk
