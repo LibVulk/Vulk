@@ -21,8 +21,8 @@
 
 #include <SFVL/Vec2.hpp>
 
-#include <ostream>
 #include <algorithm>
+#include <ostream>
 
 namespace sfvl {
 template<typename T>
@@ -59,8 +59,8 @@ struct Rect
 
     [[nodiscard]] constexpr bool contains(const Vec2<T>& point) const noexcept
     {
-        const T maxX = std::max(left, static_cast<T>(left + width));
         const T minX = std::min(left, static_cast<T>(left + width));
+        const T maxX = std::max(left, static_cast<T>(left + width));
         const T minY = std::min(top, static_cast<T>(top + height));
         const T maxY = std::max(top, static_cast<T>(top + height));
 
