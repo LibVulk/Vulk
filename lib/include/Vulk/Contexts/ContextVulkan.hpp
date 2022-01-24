@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <vulkan/vulkan.hpp>  // TODO: since this adds some compiling time, we should "hide" it with forwards declarations
+#include <vulkan/vulkan.hpp>
 
 #include <array>
 #include <memory>
@@ -27,7 +27,7 @@
 
 #include "Window.hpp"
 
-namespace sfvl {
+namespace vulk {
 class ContextVulkan
 {
 public:
@@ -101,6 +101,8 @@ private:
     void createLogicalDevice();
     void createSwapChain(GLFWwindow* windowHandle);
     void createImageViews();
+    void createRenderPass();
+    void createGraphicsPipeline();
 
     void chooseSwapSurfaceFormat();
     void chooseSwapPresentMode();
@@ -128,10 +130,15 @@ private:
     std::vector<vk::ImageView> m_swapChainImageViews{};
     vk::Format m_swapChainFormat{};
 
+    vk::Viewport m_viewport{};
+    vk::RenderPass m_renderPass{};
+    vk::PipelineLayout m_pipelineLayout{};
+    vk::Pipeline m_pipeline{};
+
     QueueFamilyIndices m_queueFamilyIndices{};
     QueueFamilyPropertiesList m_queueFamilyProperties{};
     SwapChainSupportDetails m_swapChainSupport{};
 
     static std::unique_ptr<ContextVulkan> s_instance;
 };
-}  // namespace sfvl
+}  // namespace vulk

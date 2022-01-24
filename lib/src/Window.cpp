@@ -27,7 +27,7 @@
 #include "Contexts/ContextVulkan.hpp"
 #include "Error.hpp"
 
-sfvl::Window::Window(int width, int height, const char* title)
+vulk::Window::Window(int width, int height, const char* title)
 {
     ContextGLFW::ensureInstance();
 
@@ -42,18 +42,18 @@ sfvl::Window::Window(int width, int height, const char* title)
     ContextVulkan::createInstance(m_windowHandle);
 }
 
-sfvl::Window::~Window()
+vulk::Window::~Window()
 {
     if (m_windowHandle)
         glfwDestroyWindow(m_windowHandle);
 }
 
-sfvl::Window::Window(Window&& rhs) noexcept : m_windowHandle{rhs.m_windowHandle}
+vulk::Window::Window(Window&& rhs) noexcept : m_windowHandle{rhs.m_windowHandle}
 {
     rhs.m_windowHandle = nullptr;
 }
 
-sfvl::Window& sfvl::Window::operator=(Window&& rhs) noexcept
+vulk::Window& vulk::Window::operator=(Window&& rhs) noexcept
 {
     m_windowHandle = rhs.m_windowHandle;
     rhs.m_windowHandle = nullptr;
@@ -61,22 +61,22 @@ sfvl::Window& sfvl::Window::operator=(Window&& rhs) noexcept
     return *this;
 }
 
-void sfvl::Window::display()
+void vulk::Window::display()
 {
     m_frameManager.update();
 }
 
-void sfvl::Window::pollEvents()
+void vulk::Window::pollEvents()
 {
     glfwPollEvents();
 }
 
-void sfvl::Window::close() noexcept
+void vulk::Window::close() noexcept
 {
     glfwSetWindowShouldClose(m_windowHandle, true);
 }
 
-bool sfvl::Window::isOpen() const noexcept
+bool vulk::Window::isOpen() const noexcept
 {
     return !glfwWindowShouldClose(m_windowHandle);
 }

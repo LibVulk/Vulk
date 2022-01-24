@@ -23,11 +23,11 @@
 
 using namespace std::chrono_literals;
 
-sfvl::FrameManager::FrameManager() : m_lastFrame{Clock::now()}
+vulk::FrameManager::FrameManager() : m_lastFrame{Clock::now()}
 {
 }
 
-void sfvl::FrameManager::update() noexcept
+void vulk::FrameManager::update() noexcept
 {
     const auto timePoint = Clock::now();
 
@@ -52,7 +52,7 @@ void sfvl::FrameManager::update() noexcept
 }
 
 // TODO: There is probably a more optimal way of doing this
-std::string sfvl::FrameManager::getFramerateString() const noexcept
+std::string vulk::FrameManager::getFramerateString() const noexcept
 {
     static constexpr size_t BufferSize = 16;
     char buffer[BufferSize]{};

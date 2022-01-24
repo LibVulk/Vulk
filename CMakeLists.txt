@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
-project(sfvl LANGUAGES C CXX)
+project(vulk LANGUAGES C CXX)
 
 set(CMAKE_VERBOSE_MAKEFILE OFF) # turn on to debug Makefile builds
 
-set(PROJECT_PREFIX SFVL)
+set(PROJECT_PREFIX VULK)
 
 if (NOT "${CMAKE_CXX_STANDARD}")
     set(CMAKE_CXX_STANDARD 20)
@@ -21,9 +21,12 @@ link_directories(${CONAN_LIB_DIRS})
 link_libraries(${CONAN_LIBS})
 include_directories(SYSTEM "${CONAN_INCLUDE_DIRS}")
 
+find_program(GLSLC glslc REQUIRED)
+
 include(cmake/options.cmake)  # *needs to be first*
 include(cmake/warnings.cmake)
 include(cmake/flags.cmake)
+include(cmake/functions.cmake)
 
 if (${CMAKE_BUILD_TYPE} MATCHES "Release" AND ${${PROJECT_PREFIX}_ENABLE_IPO})
     include(CheckIPOSupported)

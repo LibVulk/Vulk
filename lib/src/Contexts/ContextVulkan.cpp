@@ -26,15 +26,16 @@
 #include <string_view>
 
 #include "ScopedProfiler.hpp"
+#include "Shader.hpp"
 #include "Utils.hpp"
 
-std::unique_ptr<sfvl::ContextVulkan> sfvl::ContextVulkan::s_instance{nullptr};
+std::unique_ptr<vulk::ContextVulkan> vulk::ContextVulkan::s_instance{nullptr};
 
-sfvl::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle)
+vulk::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle)
 {
-    SFVL_SCOPED_PROFILER("ContextVulkan::ContextVulkan()");
+    VULK_SCOPED_PROFILER("ContextVulkan::ContextVulkan()");
 
-#if SFVL_DEBUG
+#if VULK_DEBUG
     // printAvailableValidationLayers();
     verifyValidationLayersSupport();
 #endif
@@ -45,24 +46,37 @@ sfvl::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle)
     createLogicalDevice();
     createSwapChain(windowHandle);
     createImageViews();
+    createRenderPass();
+    createGraphicsPipeline();
 
-#if SFVL_DEBUG
+#if VULK_DEBUG
     std::cout << "Selected GPU name: " << m_physicalDevice.getProperties().deviceName << std::endl;
 #endif
 }
 
-sfvl::ContextVulkan::~ContextVulkan()
+vulk::ContextVulkan::~ContextVulkan()
 {
-    SFVL_SCOPED_PROFILER("ContextVulkan::~ContextVulkan()");
+    VULK_SCOPED_PROFILER("ContextVulkan::~ContextVulkan()");
 
     // TODO: use vk::raii
 
     if (m_device)
+    {
+        if (m_pipeline)
+            m_device.destroy(m_pipeline);
+
+        if (m_pipelineLayout)
+            m_device.destroy(m_pipelineLayout);
+
+        if (m_renderPass)
+            m_device.destroy(m_renderPass);
+
         for (auto& imageView : m_swapChainImageViews)
             m_device.destroy(imageView);
 
-    if (m_swapChain && m_device)
-        m_device.destroy(m_swapChain);
+        if (m_swapChain)
+            m_device.destroy(m_swapChain);
+    }
 
     if (m_surface)
         m_instance.destroy(m_surface);
@@ -74,7 +88,7 @@ sfvl::ContextVulkan::~ContextVulkan()
         m_instance.destroy();
 }
 
-void sfvl::ContextVulkan::createInstance(GLFWwindow* windowHandle)
+void vulk::ContextVulkan::createInstance(GLFWwindow* windowHandle)
 {
     if (s_instance)
         return;
@@ -82,7 +96,7 @@ void sfvl::ContextVulkan::createInstance(GLFWwindow* windowHandle)
     s_instance = std::unique_ptr<ContextVulkan>(new ContextVulkan{windowHandle});
 }
 
-void sfvl::ContextVulkan::printAvailableValidationLayers()
+void vulk::ContextVulkan::printAvailableValidationLayers()
 {
     std::cout << "Available Layers:\n";
 
@@ -93,7 +107,7 @@ void sfvl::ContextVulkan::printAvailableValidationLayers()
     std::cout.flush();
 }
 
-void sfvl::ContextVulkan::verifyValidationLayersSupport()
+void vulk::ContextVulkan::verifyValidationLayersSupport()
 {
     const auto& availableLayers = getAvailableValidationLayers();
 
@@ -119,9 +133,9 @@ void sfvl::ContextVulkan::verifyValidationLayersSupport()
     }
 }
 
-void sfvl::ContextVulkan::createInstance()
+void vulk::ContextVulkan::createInstance()
 {
-    SFVL_SCOPED_PROFILER("ContextVulkan::createInstance()");
+    VULK_SCOPED_PROFILER("ContextVulkan::createInstance()");
 
     uint32_t glfwExtensionCount = 0;
     const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -130,9 +144,9 @@ void sfvl::ContextVulkan::createInstance()
     vk::InstanceCreateInfo createInfo{};
 
     // TODO: ability to change this in the API
-    appInfo.pApplicationName = "SFVL Application";
+    appInfo.pApplicationName = "Vulk Application";
     appInfo.applicationVersion = VK_MAKE_API_VERSION(0, 1, 0, 0);
-    appInfo.pEngineName = "SFVL";
+    appInfo.pEngineName = "Vulk";
     appInfo.engineVersion = VK_MAKE_API_VERSION(0, 1, 0, 0);
     appInfo.apiVersion = VK_API_VERSION_1_2;
 
@@ -140,7 +154,7 @@ void sfvl::ContextVulkan::createInstance()
     createInfo.enabledExtensionCount = glfwExtensionCount;
     createInfo.ppEnabledExtensionNames = glfwExtensions;
 
-#if SFVL_DEBUG
+#if VULK_DEBUG
     createInfo.enabledLayerCount = static_cast<uint32_t>(VALIDATION_LAYER_NAMES.size());
     createInfo.ppEnabledLayerNames = VALIDATION_LAYER_NAMES.data();
 #else
@@ -153,9 +167,9 @@ void sfvl::ContextVulkan::createInstance()
         vk::throwResultException(result, "Failed to create a Vulkan instance");
 }
 
-void sfvl::ContextVulkan::createSurface(GLFWwindow* windowHandle)
+void vulk::ContextVulkan::createSurface(GLFWwindow* windowHandle)
 {
-    SFVL_SCOPED_PROFILER("ContextVulkan::createSurface()");
+    VULK_SCOPED_PROFILER("ContextVulkan::createSurface()");
 
     VkSurfaceKHR surface;
 
@@ -165,9 +179,9 @@ void sfvl::ContextVulkan::createSurface(GLFWwindow* windowHandle)
     m_surface = surface;
 }
 
-void sfvl::ContextVulkan::pickPhysicalDevice()
+void vulk::ContextVulkan::pickPhysicalDevice()
 {
-    SFVL_SCOPED_PROFILER("ContextVulkan::pickPhysicalDevice()");
+    VULK_SCOPED_PROFILER("ContextVulkan::pickPhysicalDevice()");
 
     const auto& devices = m_instance.enumeratePhysicalDevices();
 
@@ -196,9 +210,9 @@ void sfvl::ContextVulkan::pickPhysicalDevice()
         throw std::runtime_error("Failed to find an appropriate GPU");
 }
 
-void sfvl::ContextVulkan::createLogicalDevice()
+void vulk::ContextVulkan::createLogicalDevice()
 {
-    SFVL_SCOPED_PROFILER("ContextVulkan::createLogicalDevice()");
+    VULK_SCOPED_PROFILER("ContextVulkan::createLogicalDevice()");
 
     static constexpr float queuePriority = 1.f;
 
@@ -244,9 +258,9 @@ void sfvl::ContextVulkan::createLogicalDevice()
         throw std::runtime_error("Failed to retrieve present queue");
 }
 
-void sfvl::ContextVulkan::createSwapChain(GLFWwindow* windowHandle)
+void vulk::ContextVulkan::createSwapChain(GLFWwindow* windowHandle)
 {
-    SFVL_SCOPED_PROFILER("ContextVulkan::createSwapChain()");
+    VULK_SCOPED_PROFILER("ContextVulkan::createSwapChain()");
 
     chooseSwapSurfaceFormat();
     chooseSwapPresentMode();
@@ -295,9 +309,9 @@ void sfvl::ContextVulkan::createSwapChain(GLFWwindow* windowHandle)
     m_swapChainFormat = m_surfaceFormat.format;
 }
 
-void sfvl::ContextVulkan::createImageViews()
+void vulk::ContextVulkan::createImageViews()
 {
-    SFVL_SCOPED_PROFILER("ContextVulkan::createImageViews()");
+    VULK_SCOPED_PROFILER("ContextVulkan::createImageViews()");
 
     const auto size = m_swapChainImages.size();
     m_swapChainImageViews.reserve(size);
@@ -323,7 +337,152 @@ void sfvl::ContextVulkan::createImageViews()
     }
 }
 
-void sfvl::ContextVulkan::chooseSwapSurfaceFormat()
+void vulk::ContextVulkan::createRenderPass()
+{
+    VULK_SCOPED_PROFILER("ContextVulkan::createRenderPass()");
+
+    vk::AttachmentDescription colorAttachment{};
+    colorAttachment.format = m_swapChainFormat;
+    colorAttachment.samples = vk::SampleCountFlagBits::e1;  // TODO: modifiable
+    colorAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+    colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
+    colorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+    colorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+    colorAttachment.initialLayout = vk::ImageLayout::eUndefined;
+    colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+
+    vk::AttachmentReference colorAttachmentRef{};
+    colorAttachmentRef.attachment = 0;
+    colorAttachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
+
+    vk::SubpassDescription subpass{};
+    subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments = &colorAttachmentRef;
+
+    vk::RenderPassCreateInfo renderPassCreateInfo{};
+    renderPassCreateInfo.attachmentCount = 1;
+    renderPassCreateInfo.pAttachments = &colorAttachment;
+    renderPassCreateInfo.subpassCount = 1;
+    renderPassCreateInfo.pSubpasses = &subpass;
+
+    m_renderPass = m_device.createRenderPass(renderPassCreateInfo);
+
+    if (!m_renderPass)
+        throw std::runtime_error("Failed to create the render pass");
+}
+
+void vulk::ContextVulkan::createGraphicsPipeline()
+{
+    VULK_SCOPED_PROFILER("ContextVulkan::createGraphicsPipeline()");
+
+    Shader vert{m_device, "shaders/vulk/shader.vert.spv", Shader::Type::eVertex};
+    Shader frag{m_device, "shaders/vulk/shader.frag.spv", Shader::Type::eFragment};
+
+    vk::PipelineShaderStageCreateInfo shaderStages[] = {vert.getShaderStageCreateInfo(),
+                                                        frag.getShaderStageCreateInfo()};
+
+    vk::PipelineVertexInputStateCreateInfo vertexInputInfo{};
+    vertexInputInfo.vertexBindingDescriptionCount = 0;
+    vertexInputInfo.vertexAttributeDescriptionCount = 0;
+
+    vk::PipelineInputAssemblyStateCreateInfo inputAssembly{};
+    inputAssembly.topology = vk::PrimitiveTopology::eTriangleList;
+    inputAssembly.primitiveRestartEnable = false;
+
+    m_viewport.x = 0;
+    m_viewport.y = 0;
+    m_viewport.width = static_cast<float>(m_extent.width);
+    m_viewport.height = static_cast<float>(m_extent.height);
+    m_viewport.minDepth = 0;
+    m_viewport.maxDepth = 1;
+
+    vk::Rect2D scissor{};
+    scissor.offset = vk::Offset2D{0, 0};
+    scissor.extent = m_extent;
+
+    vk::PipelineViewportStateCreateInfo viewportState{};
+    viewportState.viewportCount = 1;
+    viewportState.pViewports = &m_viewport;
+    viewportState.scissorCount = 1;
+    viewportState.pScissors = &scissor;
+
+    vk::PipelineRasterizationStateCreateInfo rasterizer{};
+    rasterizer.depthClampEnable = false;
+    rasterizer.rasterizerDiscardEnable = false;
+    rasterizer.polygonMode = vk::PolygonMode::eFill;
+    rasterizer.lineWidth = 1;
+    rasterizer.cullMode = vk::CullModeFlagBits::eBack;
+    rasterizer.frontFace = vk::FrontFace::eClockwise;
+    rasterizer.depthBiasEnable = false;
+
+    vk::PipelineMultisampleStateCreateInfo multisampling{};
+    multisampling.sampleShadingEnable = false;
+    multisampling.rasterizationSamples = vk::SampleCountFlagBits::e1;
+
+    // temporary manual switch to test things, should be customizable at runtime later
+    static constexpr bool tmpTestEnabled = false;
+
+    vk::PipelineColorBlendAttachmentState colorBlendAttachment{};
+    colorBlendAttachment.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+                                          vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
+    if constexpr (tmpTestEnabled)
+    {
+        colorBlendAttachment.blendEnable = true;
+        colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
+        colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
+        colorBlendAttachment.colorBlendOp = vk::BlendOp::eAdd;
+        colorBlendAttachment.srcAlphaBlendFactor = vk::BlendFactor::eOne;
+        colorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eZero;
+        colorBlendAttachment.alphaBlendOp = vk::BlendOp::eAdd;
+    } else
+    {
+        colorBlendAttachment.blendEnable = false;
+    }
+
+    vk::PipelineColorBlendStateCreateInfo colorBlending{};
+    colorBlending.logicOpEnable = tmpTestEnabled;
+    colorBlending.logicOp = vk::LogicOp::eCopy;
+    colorBlending.attachmentCount = 1;
+    colorBlending.pAttachments = &colorBlendAttachment;
+
+    std::array dynamicStatesArray = {vk::DynamicState::eViewport, vk::DynamicState::eLineWidth};
+    vk::PipelineDynamicStateCreateInfo dynamicState{};
+    dynamicState.dynamicStateCount = dynamicStatesArray.size();
+    dynamicState.pDynamicStates = dynamicStatesArray.data();
+
+    vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo{};  // empty for now
+
+    m_pipelineLayout = m_device.createPipelineLayout(pipelineLayoutCreateInfo);
+
+    if (!m_pipelineLayout)
+        throw std::runtime_error("Failed to create pipeline layout");
+
+    vk::GraphicsPipelineCreateInfo pipelineInfo{};
+    pipelineInfo.stageCount = 2;
+    pipelineInfo.pStages = shaderStages;
+    pipelineInfo.pVertexInputState = &vertexInputInfo;
+    pipelineInfo.pInputAssemblyState = &inputAssembly;
+    pipelineInfo.pViewportState = &viewportState;
+    pipelineInfo.pRasterizationState = &rasterizer;
+    pipelineInfo.pMultisampleState = &multisampling;
+    pipelineInfo.pDepthStencilState = nullptr;
+    pipelineInfo.pColorBlendState = &colorBlending;
+    pipelineInfo.pDynamicState = nullptr;
+    pipelineInfo.layout = m_pipelineLayout;
+    pipelineInfo.renderPass = m_renderPass;
+    pipelineInfo.subpass = 0;
+
+    // Useless now, but will be useful and more efficient when modifying the pipeline
+    // I added it as a reminder :)
+    pipelineInfo.basePipelineHandle = nullptr;
+    pipelineInfo.basePipelineIndex = -1;
+
+    if (m_device.createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, &m_pipeline) != vk::Result::eSuccess)
+        throw std::runtime_error("Failed to create the graphics pipeline");
+}
+
+void vulk::ContextVulkan::chooseSwapSurfaceFormat()
 {
     assert(!m_swapChainSupport.formats.empty());
 
@@ -336,13 +495,13 @@ void sfvl::ContextVulkan::chooseSwapSurfaceFormat()
         }
     }
 
-#if SFVL_DEBUG
+#if VULK_DEBUG
     std::cerr << "Warning: unexpected format support, using the first available one.\n";
 #endif
     m_surfaceFormat = m_swapChainSupport.formats[0];
 }
 
-void sfvl::ContextVulkan::chooseSwapPresentMode()
+void vulk::ContextVulkan::chooseSwapPresentMode()
 {
     for (const auto& presentMode : PRESENT_MODES_PREFERRED)
     {
@@ -360,7 +519,7 @@ void sfvl::ContextVulkan::chooseSwapPresentMode()
     throw std::runtime_error("No present mode available.");
 }
 
-void sfvl::ContextVulkan::chooseSwapExtent(GLFWwindow* windowHandle)
+void vulk::ContextVulkan::chooseSwapExtent(GLFWwindow* windowHandle)
 {
     const auto& caps = m_swapChainSupport.capabilities;
 
@@ -379,9 +538,9 @@ void sfvl::ContextVulkan::chooseSwapExtent(GLFWwindow* windowHandle)
     }
 }
 
-bool sfvl::ContextVulkan::verifyExtensionsSupport(const vk::PhysicalDevice& device)
+bool vulk::ContextVulkan::verifyExtensionsSupport(const vk::PhysicalDevice& device)
 {
-    SFVL_SCOPED_PROFILER("ContextVulkan::verifyExtensionsSupport()");
+    VULK_SCOPED_PROFILER("ContextVulkan::verifyExtensionsSupport()");
 
     const auto& currentExts = device.enumerateDeviceExtensionProperties();
 
@@ -401,10 +560,10 @@ bool sfvl::ContextVulkan::verifyExtensionsSupport(const vk::PhysicalDevice& devi
     return allValid;
 }
 
-sfvl::ContextVulkan::QueueFamilyEntry
-sfvl::ContextVulkan::findQueueFamilies(const vk::PhysicalDevice& physicalDevice) const noexcept
+vulk::ContextVulkan::QueueFamilyEntry
+vulk::ContextVulkan::findQueueFamilies(const vk::PhysicalDevice& physicalDevice) const noexcept
 {
-    SFVL_SCOPED_PROFILER("ContextVulkan::findQueueFamilies()");
+    VULK_SCOPED_PROFILER("ContextVulkan::findQueueFamilies()");
 
     auto queueFamilies = physicalDevice.getQueueFamilyProperties();
     QueueFamilyIndices indices{};
@@ -427,8 +586,8 @@ sfvl::ContextVulkan::findQueueFamilies(const vk::PhysicalDevice& physicalDevice)
     return std::make_pair(std::move(queueFamilies), indices);
 }
 
-sfvl::ContextVulkan::SwapChainSupportDetails
-sfvl::ContextVulkan::querySwapChainSupport(const vk::PhysicalDevice& device) const noexcept
+vulk::ContextVulkan::SwapChainSupportDetails
+vulk::ContextVulkan::querySwapChainSupport(const vk::PhysicalDevice& device) const noexcept
 {
     SwapChainSupportDetails details{device.getSurfaceCapabilitiesKHR(m_surface),  //
                                     device.getSurfaceFormatsKHR(m_surface),       //
@@ -437,7 +596,7 @@ sfvl::ContextVulkan::querySwapChainSupport(const vk::PhysicalDevice& device) con
     return details;
 }
 
-sfvl::ContextVulkan& sfvl::ContextVulkan::getInstance()
+vulk::ContextVulkan& vulk::ContextVulkan::getInstance()
 {
     return *s_instance;
 }

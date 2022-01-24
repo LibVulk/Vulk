@@ -18,10 +18,12 @@
 
 #include <vector>
 
-namespace sfvl::utils {
+namespace vulk::utils {
 template<typename T, typename Allocator>
 [[nodiscard]] bool vectorContains(const std::vector<T, Allocator>& vector, const T& element)
 {
     return std::find(vector.cbegin(), vector.cend(), element) != vector.cend();
 }
-}  // namespace sfvl::utils
+
+std::vector<char> fileToBinary(const char* filePath);
+}  // namespace vulk::utils

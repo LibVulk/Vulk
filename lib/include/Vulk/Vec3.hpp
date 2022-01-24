@@ -22,7 +22,7 @@
 #include <cmath>
 #include <ostream>
 
-namespace sfvl {
+namespace vulk {
 template<typename T>
 struct Vec3
 {
@@ -122,4 +122,4 @@ using Vec3f = Vec3<float>;
 using Vec3d = Vec3<double>;
 using Vec3i = Vec3<int>;
 using Vec3u = Vec3<unsigned int>;
-}  // namespace sfvl
+}  // namespace vulk
