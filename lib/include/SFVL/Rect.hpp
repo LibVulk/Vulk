@@ -22,6 +22,7 @@
 #include <SFVL/Vec2.hpp>
 
 #include <ostream>
+#include <algorithm>
 
 namespace sfvl {
 template<typename T>
@@ -48,16 +49,22 @@ struct Rect
 
     [[nodiscard]] constexpr bool contains(T x, T y) const noexcept
     {
-        if (left < x && top > y)
-            return true;
-        return false;
+        const T minX = std::min(left, static_cast<T>(left + width));
+        const T maxX = std::max(left, static_cast<T>(left + width));
+        const T minY = std::min(top, static_cast<T>(top + height));
+        const T maxY = std::max(top, static_cast<T>(top + height));
+
+        return (x >= minX) && (x <= maxX) && (y >= minY) && (y <= maxY);
     }
 
     [[nodiscard]] constexpr bool contains(const Vec2<T>& point) const noexcept
     {
-        if (left < point.x && top > point.y)
-            return true;
-        return false;
+        const T maxX = std::max(left, static_cast<T>(left + width));
+        const T minX = std::min(left, static_cast<T>(left + width));
+        const T minY = std::min(top, static_cast<T>(top + height));
+        const T maxY = std::max(top, static_cast<T>(top + height));
+
+        return (point.x >= minX) && (point.x <= maxX) && (point.y >= minY) && (point.y <= maxY);
     }
 
     constexpr friend std::ostream& operator<<(std::ostream& os, const Rect<T>& rect) noexcept
