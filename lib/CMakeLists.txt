@@ -1,7 +1,10 @@
 add_library(
         ${PROJECT_NAME} STATIC
         include/Vulk/Time.hpp
+        include/Vulk/Vec2.hpp
         include/Vulk/Vec3.hpp
+        include/Vulk/Rect.hpp
+        include/Vulk/Mat3.hpp
         src/Window.cpp include/Vulk/Window.hpp
         src/Contexts/ContextGLFW.cpp include/Vulk/Contexts/ContextGLFW.hpp
         src/Error.cpp include/Vulk/Error.hpp
