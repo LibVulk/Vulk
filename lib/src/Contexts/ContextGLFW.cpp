@@ -21,6 +21,7 @@
 
 #include <GLFW/glfw3.h>
 
+#include <cassert>
 #include <stdexcept>
 
 #include "Vulk/Error.hpp"
