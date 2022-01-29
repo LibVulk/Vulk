@@ -27,14 +27,18 @@
 #include "Vulk/Contexts/ContextVulkan.hpp"
 #include "Vulk/Error.hpp"
 
-vulk::Window::Window(int width, int height, const char* title)
+vulk::Window::Window(unsigned int width, unsigned int height, const char* title)
 {
+    assert(width != 0);
+    assert(height != 0);
+    assert(title != nullptr);
+
     ContextGLFW::ensureInstance();
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);  // TODO: Dynamic from arguments
 
-    m_windowHandle = glfwCreateWindow(width, height, title, nullptr, nullptr);
+    m_windowHandle = glfwCreateWindow(static_cast<int>(width), static_cast<int>(height), title, nullptr, nullptr);
 
     if (!m_windowHandle)
         throw std::runtime_error(utils::getGLFWError());

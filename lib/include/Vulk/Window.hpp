@@ -27,7 +27,7 @@ namespace vulk {
 class Window
 {
 public:
-    Window(int width, int height, const char* title);
+    Window(unsigned int width, unsigned int height, const char* title);
     ~Window();
 
     Window(Window&& rhs) noexcept;
