@@ -17,7 +17,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "Contexts/ContextVulkan.hpp"
+#include "Vulk/Contexts/ContextVulkan.hpp"
 
 #include <GLFW/glfw3.h>
 
@@ -25,15 +25,17 @@
 #include <set>
 #include <string_view>
 
-#include "ScopedProfiler.hpp"
-#include "Shader.hpp"
-#include "Utils.hpp"
+#include "Vulk/ScopedProfiler.hpp"
+#include "Vulk/Shader.hpp"
+#include "Vulk/Utils.hpp"
 
 std::unique_ptr<vulk::ContextVulkan> vulk::ContextVulkan::s_instance{nullptr};
 
 vulk::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle)
 {
     VULK_SCOPED_PROFILER("ContextVulkan::ContextVulkan()");
+
+    assert(windowHandle);
 
 #if VULK_DEBUG
     // printAvailableValidationLayers();
@@ -49,6 +51,8 @@ vulk::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle)
     createRenderPass();
     createGraphicsPipeline();
     createFrameBuffers();
+    createCommandPool();
+    createCommandBuffers();
 
 #if VULK_DEBUG
     std::cout << "Selected GPU name: " << m_physicalDevice.getProperties().deviceName << std::endl;
@@ -63,6 +67,8 @@ vulk::ContextVulkan::~ContextVulkan()
 
     if (m_device)
     {
+        m_device.destroy(m_commandPool);
+
         for (auto& framebuffer : m_swapChainFrameBuffers)
             m_device.destroy(framebuffer);
 
@@ -175,6 +181,8 @@ void vulk::ContextVulkan::createSurface(GLFWwindow* windowHandle)
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createSurface()");
 
+    assert(windowHandle);
+
     VkSurfaceKHR surface;
 
     if (glfwCreateWindowSurface(m_instance, windowHandle, nullptr, &surface) != VK_SUCCESS)
@@ -265,6 +273,8 @@ void vulk::ContextVulkan::createLogicalDevice()
 void vulk::ContextVulkan::createSwapChain(GLFWwindow* windowHandle)
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createSwapChain()");
+
+    assert(windowHandle);
 
     chooseSwapSurfaceFormat();
     chooseSwapPresentMode();
@@ -513,6 +523,62 @@ void vulk::ContextVulkan::createFrameBuffers()
     }
 }
 
+void vulk::ContextVulkan::createCommandPool()
+{
+    VULK_SCOPED_PROFILER("ContextVulkan::createCommandPool()");
+
+    vk::CommandPoolCreateInfo commandPoolCreateInfo{};
+    commandPoolCreateInfo.queueFamilyIndex = m_queueFamilyIndices.graphicsFamily.value();
+    // commandPoolCreateInfo.flags = ??; // TODO: may need to change this one later
+
+    m_commandPool = m_device.createCommandPool(commandPoolCreateInfo);
+
+    if (!m_commandPool)
+        throw std::runtime_error("Failed to create the command pool");
+}
+
+void vulk::ContextVulkan::createCommandBuffers()
+{
+    VULK_SCOPED_PROFILER("ContextVulkan::createCommandBuffers()");
+
+    m_commandBuffers.reserve(m_swapChainFrameBuffers.size());
+
+    vk::CommandBufferAllocateInfo allocateInfo{};
+    allocateInfo.commandPool = m_commandPool;
+    allocateInfo.level = vk::CommandBufferLevel::ePrimary;
+    allocateInfo.commandBufferCount = static_cast<uint32_t>(m_swapChainFrameBuffers.size());
+
+    if (m_device.allocateCommandBuffers(&allocateInfo, m_commandBuffers.data()) != vk::Result::eSuccess)
+        throw std::runtime_error("Failed to allocate command buffers");
+
+    for (size_t i = 0; i < m_swapChainFrameBuffers.size(); ++i)
+    {
+        vk::CommandBufferBeginInfo beginInfo{};
+        // beginInfo.flags = vk::CommandBufferUsageFlagBits::...;
+        // beginInfo.pInheritanceInfo = nullptr;
+
+        if (m_commandBuffers[i].begin(&beginInfo) != vk::Result::eSuccess)
+            throw std::runtime_error("Failed to begin recording command buffer");
+
+        vk::ClearValue clearValue{};
+        clearValue.color = vk::ClearColorValue{std::array{0.f, 0.f, 0.f, 1.f}};
+
+        vk::RenderPassBeginInfo renderPassBeginInfo{};
+        renderPassBeginInfo.renderPass = m_renderPass;
+        renderPassBeginInfo.framebuffer = m_swapChainFrameBuffers[i];
+        renderPassBeginInfo.renderArea.offset = vk::Offset2D{0, 0};
+        renderPassBeginInfo.renderArea.extent = m_extent;
+        renderPassBeginInfo.clearValueCount = 1;
+        renderPassBeginInfo.pClearValues = &clearValue;
+
+        m_commandBuffers[i].beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
+        m_commandBuffers[i].bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline);
+        m_commandBuffers[i].draw(3, 1, 0, 0);
+        m_commandBuffers[i].endRenderPass();
+        m_commandBuffers[i].end();
+    }
+}
+
 void vulk::ContextVulkan::chooseSwapSurfaceFormat()
 {
     assert(!m_swapChainSupport.formats.empty());
@@ -552,6 +618,8 @@ void vulk::ContextVulkan::chooseSwapPresentMode()
 
 void vulk::ContextVulkan::chooseSwapExtent(GLFWwindow* windowHandle)
 {
+    assert(windowHandle);
+
     const auto& caps = m_swapChainSupport.capabilities;
 
     if (caps.currentExtent.width != std::numeric_limits<uint32_t>::max())

@@ -17,13 +17,13 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "Contexts/ContextGLFW.hpp"
+#include "Vulk/Contexts/ContextGLFW.hpp"
 
 #include <GLFW/glfw3.h>
 
 #include <stdexcept>
 
-#include "Error.hpp"
+#include "Vulk/Error.hpp"
 
 std::unique_ptr<vulk::ContextGLFW> vulk::ContextGLFW::s_instance{nullptr};
 

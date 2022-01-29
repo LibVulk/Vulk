@@ -25,7 +25,8 @@
 #include <memory>
 #include <optional>
 
-#include "Window.hpp"
+#include "Vulk/ClassUtils.hpp"
+#include "Vulk/Window.hpp"
 
 namespace vulk {
 class ContextVulkan
@@ -35,6 +36,8 @@ public:
 
     static void createInstance(GLFWwindow* windowHandle);
     static ContextVulkan& getInstance();
+
+    VULK_NO_MOVE_OR_COPY(ContextVulkan)
 
 private:
     static void printAvailableValidationLayers();
@@ -104,6 +107,8 @@ private:
     void createRenderPass();
     void createGraphicsPipeline();
     void createFrameBuffers();
+    void createCommandPool();
+    void createCommandBuffers();
 
     void chooseSwapSurfaceFormat();
     void chooseSwapPresentMode();
@@ -113,6 +118,8 @@ private:
 
     [[nodiscard]] QueueFamilyEntry findQueueFamilies(const vk::PhysicalDevice& physicalDevice) const noexcept;
     [[nodiscard]] SwapChainSupportDetails querySwapChainSupport(const vk::PhysicalDevice& device) const noexcept;
+
+    // TODO: cache image count used in framebuffers, swap-chain, etc
 
     vk::Instance m_instance{};
     vk::PhysicalDevice m_physicalDevice{};
@@ -141,6 +148,9 @@ private:
     SwapChainSupportDetails m_swapChainSupport{};
 
     std::vector<vk::Framebuffer> m_swapChainFrameBuffers{};
+
+    vk::CommandPool m_commandPool{};
+    std::vector<vk::CommandBuffer> m_commandBuffers{};
 
     static std::unique_ptr<ContextVulkan> s_instance;
 };

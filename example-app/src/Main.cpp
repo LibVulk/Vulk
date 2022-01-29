@@ -17,6 +17,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#include <Vulk/Contexts/ContextVulkan.hpp>
 #include <Vulk/Window.hpp>
 
 #include <iostream>
@@ -27,6 +28,10 @@ int main()
 
     win.getFrameManager().setOnSecondCallback(
       [](const vulk::FrameManager& frameManager) { std::cout << frameManager << std::endl; });
+
+#if VULK_DEBUG
+    std::cout << "sizeof(vulk::ContextVulkan)=" << sizeof(vulk::ContextVulkan) << std::endl;
+#endif
 
     while (win.isOpen())
     {

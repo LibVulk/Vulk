@@ -19,28 +19,14 @@
 
 #pragma once
 
-#include <memory>
+#define VULK_NO_COPY(ClassName)           \
+    ClassName(const ClassName&) = delete; \
+    ClassName& operator=(const ClassName&) = delete;
 
-#include "Vulk/ClassUtils.hpp"
+#define VULK_NO_MOVE(ClassName)      \
+    ClassName(ClassName&&) = delete; \
+    ClassName& operator=(ClassName&&) = delete;
 
-namespace vulk {
-class ContextGLFW
-{
-public:
-    ~ContextGLFW();
-
-    static ContextGLFW& getInstance();
-
-    /**
-     * Makes sure a valid GLFW context is created
-     */
-    inline static void ensureInstance() { getInstance(); }
-
-    VULK_NO_MOVE_OR_COPY(ContextGLFW)
-
-private:
-    ContextGLFW();
-
-    static std::unique_ptr<ContextGLFW> s_instance;
-};
-}  // namespace vulk
+#define VULK_NO_MOVE_OR_COPY(ClassName) \
+    VULK_NO_COPY(ClassName)             \
+    VULK_NO_MOVE(ClassName)

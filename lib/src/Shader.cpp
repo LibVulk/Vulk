@@ -17,12 +17,12 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "Shader.hpp"
+#include "Vulk/Shader.hpp"
 
 #include <iostream>
 
-#include "ScopedProfiler.hpp"
-#include "Utils.hpp"
+#include "Vulk/ScopedProfiler.hpp"
+#include "Vulk/Utils.hpp"
 
 vulk::Shader::Shader(vk::Device& device, const char* filePath, vulk::Shader::Type type)
     : m_device{device}, m_buffer{vulk::utils::fileToBinary(filePath)}, m_type{type}

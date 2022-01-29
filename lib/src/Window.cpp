@@ -17,15 +17,15 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "Window.hpp"
+#include "Vulk/Window.hpp"
 
 #include <GLFW/glfw3.h>
 
 #include <stdexcept>
 
-#include "Contexts/ContextGLFW.hpp"
-#include "Contexts/ContextVulkan.hpp"
-#include "Error.hpp"
+#include "Vulk/Contexts/ContextGLFW.hpp"
+#include "Vulk/Contexts/ContextVulkan.hpp"
+#include "Vulk/Error.hpp"
 
 vulk::Window::Window(int width, int height, const char* title)
 {
