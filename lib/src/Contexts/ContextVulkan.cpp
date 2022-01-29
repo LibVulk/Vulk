@@ -104,6 +104,11 @@ void vulk::ContextVulkan::createInstance(GLFWwindow* windowHandle)
         return;
 
     s_instance = std::unique_ptr<ContextVulkan>(new ContextVulkan{windowHandle});
+    assert(s_instance);
+}
+
+void vulk::ContextVulkan::draw()
+{
 }
 
 void vulk::ContextVulkan::printAvailableValidationLayers()
@@ -462,7 +467,7 @@ void vulk::ContextVulkan::createGraphicsPipeline()
 
     std::array dynamicStatesArray = {vk::DynamicState::eViewport, vk::DynamicState::eLineWidth};
     vk::PipelineDynamicStateCreateInfo dynamicState{};
-    dynamicState.dynamicStateCount = dynamicStatesArray.size();
+    dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStatesArray.size());
     dynamicState.pDynamicStates = dynamicStatesArray.data();
 
     vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo{};  // empty for now
@@ -541,7 +546,7 @@ void vulk::ContextVulkan::createCommandBuffers()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createCommandBuffers()");
 
-    m_commandBuffers.reserve(m_swapChainFrameBuffers.size());
+    m_commandBuffers.resize(m_swapChainFrameBuffers.size());
 
     vk::CommandBufferAllocateInfo allocateInfo{};
     allocateInfo.commandPool = m_commandPool;
@@ -697,5 +702,6 @@ vulk::ContextVulkan::querySwapChainSupport(const vk::PhysicalDevice& device) con
 
 vulk::ContextVulkan& vulk::ContextVulkan::getInstance()
 {
+    assert(s_instance);
     return *s_instance;
 }

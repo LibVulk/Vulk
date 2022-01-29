@@ -42,5 +42,7 @@ vulk::ContextGLFW& vulk::ContextGLFW::getInstance()
 {
     if (!s_instance)
         s_instance = std::unique_ptr<ContextGLFW>{new ContextGLFW};
+
+    assert(s_instance);
     return *s_instance;
 }

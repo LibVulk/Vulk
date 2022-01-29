@@ -34,6 +34,12 @@ class ContextVulkan
 public:
     ~ContextVulkan();
 
+    /**
+     * TODO: This should not be public imo. The Vulkan context should only be exposed to the window.
+     * Calling this function from the static `getInstance().draw()` can break stuff.
+     */
+    void draw();
+
     static void createInstance(GLFWwindow* windowHandle);
     static ContextVulkan& getInstance();
 

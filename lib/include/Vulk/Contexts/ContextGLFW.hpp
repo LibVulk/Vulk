@@ -29,12 +29,12 @@ class ContextGLFW
 public:
     ~ContextGLFW();
 
-    static ContextGLFW& getInstance();
+    [[nodiscard]] static ContextGLFW& getInstance();
 
     /**
      * Makes sure a valid GLFW context is created
      */
-    inline static void ensureInstance() { getInstance(); }
+    inline static void ensureInstance() { (void) getInstance(); }
 
     VULK_NO_MOVE_OR_COPY(ContextGLFW)
 

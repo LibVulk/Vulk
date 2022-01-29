@@ -63,6 +63,8 @@ vulk::Window& vulk::Window::operator=(Window&& rhs) noexcept
 
 void vulk::Window::display()
 {
+    ContextVulkan::getInstance().draw();
+
     m_frameManager.update();
 }
 
