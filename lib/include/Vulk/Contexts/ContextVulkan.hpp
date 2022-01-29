@@ -103,6 +103,7 @@ private:
     void createImageViews();
     void createRenderPass();
     void createGraphicsPipeline();
+    void createFrameBuffers();
 
     void chooseSwapSurfaceFormat();
     void chooseSwapPresentMode();
@@ -138,6 +139,8 @@ private:
     QueueFamilyIndices m_queueFamilyIndices{};
     QueueFamilyPropertiesList m_queueFamilyProperties{};
     SwapChainSupportDetails m_swapChainSupport{};
+
+    std::vector<vk::Framebuffer> m_swapChainFrameBuffers{};
 
     static std::unique_ptr<ContextVulkan> s_instance;
 };

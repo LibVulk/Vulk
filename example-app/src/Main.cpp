@@ -26,7 +26,7 @@ int main()
     vulk::Window win{800, 600, "Vulkan window"};
 
     win.getFrameManager().setOnSecondCallback(
-      [](const vulk::FrameManager& frameManager) { std::cout << frameManager.getFramerateString() << std::endl; });
+      [](const vulk::FrameManager& frameManager) { std::cout << frameManager << std::endl; });
 
     while (win.isOpen())
     {

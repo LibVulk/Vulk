@@ -60,3 +60,8 @@ std::string vulk::FrameManager::getFramerateString() const noexcept
     snprintf(buffer, BufferSize, "%u fps", m_framerate);
     return std::string{buffer};
 }
+
+std::ostream& operator<<(std::ostream& os, const vulk::FrameManager& frameManager)
+{
+    return os << frameManager.getFramerate() << " fps";
+}

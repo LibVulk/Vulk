@@ -48,6 +48,7 @@ vulk::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle)
     createImageViews();
     createRenderPass();
     createGraphicsPipeline();
+    createFrameBuffers();
 
 #if VULK_DEBUG
     std::cout << "Selected GPU name: " << m_physicalDevice.getProperties().deviceName << std::endl;
@@ -62,6 +63,9 @@ vulk::ContextVulkan::~ContextVulkan()
 
     if (m_device)
     {
+        for (auto& framebuffer : m_swapChainFrameBuffers)
+            m_device.destroy(framebuffer);
+
         if (m_pipeline)
             m_device.destroy(m_pipeline);
 
@@ -426,7 +430,7 @@ void vulk::ContextVulkan::createGraphicsPipeline()
     vk::PipelineColorBlendAttachmentState colorBlendAttachment{};
     colorBlendAttachment.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
                                           vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
-    if constexpr (tmpTestEnabled)
+    if constexpr (tmpTestEnabled)  // TODO: investigate and decide what to do
     {
         colorBlendAttachment.blendEnable = true;
         colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
@@ -480,6 +484,33 @@ void vulk::ContextVulkan::createGraphicsPipeline()
 
     if (m_device.createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, &m_pipeline) != vk::Result::eSuccess)
         throw std::runtime_error("Failed to create the graphics pipeline");
+}
+
+void vulk::ContextVulkan::createFrameBuffers()
+{
+    VULK_SCOPED_PROFILER("ContextVulkan::createFrameBuffers()");
+
+    m_swapChainFrameBuffers.reserve(m_swapChainImageViews.size());
+
+    for (const auto& imageView : m_swapChainImageViews)
+    {
+        vk::ImageView attachments[] = {imageView};
+
+        vk::FramebufferCreateInfo framebufferCreateInfo{};
+        framebufferCreateInfo.renderPass = m_renderPass;
+        framebufferCreateInfo.attachmentCount = 1;
+        framebufferCreateInfo.pAttachments = attachments;
+        framebufferCreateInfo.width = m_extent.width;
+        framebufferCreateInfo.height = m_extent.height;
+        framebufferCreateInfo.layers = 1;
+
+        auto framebuffer = m_device.createFramebuffer(framebufferCreateInfo);
+
+        if (!framebuffer)
+            throw std::runtime_error("Failed to create framebuffer");
+
+        m_swapChainFrameBuffers.push_back(framebuffer);
+    }
 }
 
 void vulk::ContextVulkan::chooseSwapSurfaceFormat()
