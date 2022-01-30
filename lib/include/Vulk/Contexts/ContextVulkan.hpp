@@ -99,6 +99,13 @@ private:
         [[nodiscard]] bool isValid() const noexcept { return !formats.empty() && !presentModes.empty(); }
     };
 
+    struct FrameSyncObjects
+    {
+        vk::Semaphore imageAvailable{};
+        vk::Semaphore renderFinished{};
+        vk::Fence fence{};
+    };
+
     using QueueFamilyPropertiesList = std::vector<vk::QueueFamilyProperties>;
     using QueueFamilyEntry = std::pair<QueueFamilyPropertiesList, QueueFamilyIndices>;
 
@@ -115,6 +122,7 @@ private:
     void createFrameBuffers();
     void createCommandPool();
     void createCommandBuffers();
+    void createSyncObject();
 
     void chooseSwapSurfaceFormat();
     void chooseSwapPresentMode();
@@ -158,6 +166,12 @@ private:
     vk::CommandPool m_commandPool{};
     std::vector<vk::CommandBuffer> m_commandBuffers{};
 
+    std::vector<FrameSyncObjects> m_frameSyncObjects{};
+    std::vector<vk::Fence> m_imagesInFlight{};
+
+    size_t m_currentFrame{};
+
+    static const size_t s_maxFramesInFlight;  // make it const until it is possible to change it, if ever...
     static std::unique_ptr<ContextVulkan> s_instance;
 };
 }  // namespace vulk

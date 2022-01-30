@@ -29,6 +29,7 @@
 #include "Vulk/Shader.hpp"
 #include "Vulk/Utils.hpp"
 
+const size_t vulk::ContextVulkan::s_maxFramesInFlight{2};
 std::unique_ptr<vulk::ContextVulkan> vulk::ContextVulkan::s_instance{nullptr};
 
 vulk::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle)
@@ -53,6 +54,7 @@ vulk::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle)
     createFrameBuffers();
     createCommandPool();
     createCommandBuffers();
+    createSyncObject();
 
 #if VULK_DEBUG
     std::cout << "Selected GPU name: " << m_physicalDevice.getProperties().deviceName << std::endl;
@@ -67,6 +69,18 @@ vulk::ContextVulkan::~ContextVulkan()
 
     if (m_device)
     {
+        {
+            VULK_SCOPED_PROFILER("ContextVulkan::~ContextVulkan()::waitIdle()");
+            m_device.waitIdle();
+        }
+
+        for (auto& frameSemaphore : m_frameSyncObjects)
+        {
+            m_device.destroy(frameSemaphore.imageAvailable);
+            m_device.destroy(frameSemaphore.renderFinished);
+            m_device.destroy(frameSemaphore.fence);
+        }
+
         m_device.destroy(m_commandPool);
 
         for (auto& framebuffer : m_swapChainFrameBuffers)
@@ -109,6 +123,56 @@ void vulk::ContextVulkan::createInstance(GLFWwindow* windowHandle)
 
 void vulk::ContextVulkan::draw()
 {
+    static constexpr auto NO_TIMEOUT = std::numeric_limits<uint64_t>::max();
+
+    // Wait until the frame is released
+
+    const auto* fence = &m_frameSyncObjects[m_currentFrame].fence;
+
+    if (m_device.waitForFences(1, fence, true, NO_TIMEOUT) != vk::Result::eSuccess)
+        throw std::runtime_error("Failed to wait for fence");
+
+    const auto& [result, imageIndex] =
+      m_device.acquireNextImageKHR(m_swapChain, NO_TIMEOUT, m_frameSyncObjects[m_currentFrame].imageAvailable);
+
+    if (result != vk::Result::eSuccess)
+        throw std::runtime_error("Failed to acquire next image");
+
+    if (m_imagesInFlight[imageIndex])
+        (void) m_device.waitForFences(1, &m_imagesInFlight[imageIndex], true, NO_TIMEOUT);
+    m_imagesInFlight[imageIndex] = m_imagesInFlight[m_currentFrame];
+
+    const std::array swapChains{m_swapChain};
+    const std::array waitSemaphores{m_frameSyncObjects[m_currentFrame].imageAvailable};
+    const std::array signalSemaphores{m_frameSyncObjects[m_currentFrame].renderFinished};
+    const vk::PipelineStageFlags waitStages[] = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
+
+    vk::SubmitInfo submitInfo{};
+    submitInfo.waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size());
+    submitInfo.pWaitSemaphores = waitSemaphores.data();
+    submitInfo.pWaitDstStageMask = waitStages;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &m_commandBuffers[imageIndex];
+    submitInfo.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
+    submitInfo.pSignalSemaphores = signalSemaphores.data();
+
+    if (m_device.resetFences(1, fence) != vk::Result::eSuccess)
+        throw std::runtime_error("Failed to reset fence");
+
+    if (m_graphicsQueue.submit(1, &submitInfo, m_frameSyncObjects[m_currentFrame].fence) != vk::Result::eSuccess)
+        throw std::runtime_error("Failed to submit draw command buffer");
+
+    vk::PresentInfoKHR presentInfo{};
+    presentInfo.waitSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
+    presentInfo.pWaitSemaphores = signalSemaphores.data();
+    presentInfo.swapchainCount = static_cast<uint32_t>(swapChains.size());
+    presentInfo.pSwapchains = swapChains.data();
+    presentInfo.pImageIndices = &imageIndex;
+    // presentInfo.pResults = nullptr; // would be useful if ever adding more swap chains
+
+    (void) m_presentQueue.presentKHR(presentInfo);  // TODO: handle error?
+
+    m_currentFrame = (m_currentFrame + 1) % s_maxFramesInFlight;
 }
 
 void vulk::ContextVulkan::printAvailableValidationLayers()
@@ -379,11 +443,21 @@ void vulk::ContextVulkan::createRenderPass()
     subpass.colorAttachmentCount = 1;
     subpass.pColorAttachments = &colorAttachmentRef;
 
+    vk::SubpassDependency subpassDependency{};
+    subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    subpassDependency.dstSubpass = 0;
+    subpassDependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    subpassDependency.srcAccessMask = {};
+    subpassDependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    subpassDependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+
     vk::RenderPassCreateInfo renderPassCreateInfo{};
     renderPassCreateInfo.attachmentCount = 1;
     renderPassCreateInfo.pAttachments = &colorAttachment;
     renderPassCreateInfo.subpassCount = 1;
     renderPassCreateInfo.pSubpasses = &subpass;
+    renderPassCreateInfo.dependencyCount = 1;
+    renderPassCreateInfo.pDependencies = &subpassDependency;
 
     m_renderPass = m_device.createRenderPass(renderPassCreateInfo);
 
@@ -581,6 +655,29 @@ void vulk::ContextVulkan::createCommandBuffers()
         m_commandBuffers[i].draw(3, 1, 0, 0);
         m_commandBuffers[i].endRenderPass();
         m_commandBuffers[i].end();
+    }
+}
+
+void vulk::ContextVulkan::createSyncObject()
+{
+    vk::SemaphoreCreateInfo semaphoreInfo{};
+    vk::FenceCreateInfo fenceInfo{};
+
+    fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
+
+    m_imagesInFlight.resize(m_swapChainImages.size());
+    m_frameSyncObjects.resize(s_maxFramesInFlight);
+
+    for (auto& frameSyncObj : m_frameSyncObjects)
+    {
+        if (m_device.createSemaphore(&semaphoreInfo, nullptr, &frameSyncObj.imageAvailable) != vk::Result::eSuccess)
+            throw std::runtime_error("Failed to create a frame semaphore");
+
+        if (m_device.createSemaphore(&semaphoreInfo, nullptr, &frameSyncObj.renderFinished) != vk::Result::eSuccess)
+            throw std::runtime_error("Failed to create a frame semaphore");
+
+        if (m_device.createFence(&fenceInfo, nullptr, &frameSyncObj.fence) != vk::Result::eSuccess)
+            throw std::runtime_error("Failed to create a fence");
     }
 }
 

@@ -30,3 +30,12 @@
 #define VULK_NO_MOVE_OR_COPY(ClassName) \
     VULK_NO_COPY(ClassName)             \
     VULK_NO_MOVE(ClassName)
+
+/**
+ * Forces a compile error and shows the type of a variable.
+ * Useful tool when searching for an auto type or deep library calls.
+ * Inspired from Scott Meyers' Effective C++ book.
+ * @tparam T Type you are looking for, use decltype of the variable to detect it.
+ */
+template<typename T>
+class TypeChecker;
