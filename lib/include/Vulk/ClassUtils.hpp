@@ -17,33 +17,25 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "Vulk/Contexts/ContextGLFW.hpp"
+#pragma once
 
-#include <GLFW/glfw3.h>
+#define VULK_NO_COPY(ClassName)           \
+    ClassName(const ClassName&) = delete; \
+    ClassName& operator=(const ClassName&) = delete;
 
-#include <cassert>
-#include <stdexcept>
+#define VULK_NO_MOVE(ClassName)      \
+    ClassName(ClassName&&) = delete; \
+    ClassName& operator=(ClassName&&) = delete;
 
-#include "Vulk/Error.hpp"
+#define VULK_NO_MOVE_OR_COPY(ClassName) \
+    VULK_NO_COPY(ClassName)             \
+    VULK_NO_MOVE(ClassName)
 
-std::unique_ptr<vulk::ContextGLFW> vulk::ContextGLFW::s_instance{nullptr};
-
-vulk::ContextGLFW::ContextGLFW()
-{
-    if (glfwInit() != GLFW_TRUE)
-        throw std::runtime_error(utils::getGLFWError());
-}
-
-vulk::ContextGLFW::~ContextGLFW()
-{
-    glfwTerminate();
-}
-
-vulk::ContextGLFW& vulk::ContextGLFW::getInstance()
-{
-    if (!s_instance)
-        s_instance = std::unique_ptr<ContextGLFW>{new ContextGLFW};
-
-    assert(s_instance);
-    return *s_instance;
-}
+/**
+ * Forces a compile error and shows the type of a variable.
+ * Useful tool when searching for an auto type or deep library calls.
+ * Inspired from Scott Meyers' Effective C++ book.
+ * @tparam T Type you are looking for, use decltype of the variable to detect it.
+ */
+template<typename T>
+class TypeChecker;

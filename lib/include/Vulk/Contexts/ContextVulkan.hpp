@@ -25,7 +25,8 @@
 #include <memory>
 #include <optional>
 
-#include "Window.hpp"
+#include "Vulk/ClassUtils.hpp"
+#include "Vulk/Window.hpp"
 
 namespace vulk {
 class ContextVulkan
@@ -33,8 +34,16 @@ class ContextVulkan
 public:
     ~ContextVulkan();
 
+    /**
+     * TODO: This should not be public imo. The Vulkan context should only be exposed to the window.
+     * Calling this function from the static `getInstance().draw()` can break stuff.
+     */
+    void draw();
+
     static void createInstance(GLFWwindow* windowHandle);
     static ContextVulkan& getInstance();
+
+    VULK_NO_MOVE_OR_COPY(ContextVulkan)
 
 private:
     static void printAvailableValidationLayers();
@@ -90,6 +99,13 @@ private:
         [[nodiscard]] bool isValid() const noexcept { return !formats.empty() && !presentModes.empty(); }
     };
 
+    struct FrameSyncObjects
+    {
+        vk::Semaphore imageAvailable{};
+        vk::Semaphore renderFinished{};
+        vk::Fence fence{};
+    };
+
     using QueueFamilyPropertiesList = std::vector<vk::QueueFamilyProperties>;
     using QueueFamilyEntry = std::pair<QueueFamilyPropertiesList, QueueFamilyIndices>;
 
@@ -103,6 +119,10 @@ private:
     void createImageViews();
     void createRenderPass();
     void createGraphicsPipeline();
+    void createFrameBuffers();
+    void createCommandPool();
+    void createCommandBuffers();
+    void createSyncObject();
 
     void chooseSwapSurfaceFormat();
     void chooseSwapPresentMode();
@@ -112,6 +132,8 @@ private:
 
     [[nodiscard]] QueueFamilyEntry findQueueFamilies(const vk::PhysicalDevice& physicalDevice) const noexcept;
     [[nodiscard]] SwapChainSupportDetails querySwapChainSupport(const vk::PhysicalDevice& device) const noexcept;
+
+    // TODO: cache image count used in framebuffers, swap-chain, etc
 
     vk::Instance m_instance{};
     vk::PhysicalDevice m_physicalDevice{};
@@ -139,6 +161,17 @@ private:
     QueueFamilyPropertiesList m_queueFamilyProperties{};
     SwapChainSupportDetails m_swapChainSupport{};
 
+    std::vector<vk::Framebuffer> m_swapChainFrameBuffers{};
+
+    vk::CommandPool m_commandPool{};
+    std::vector<vk::CommandBuffer> m_commandBuffers{};
+
+    std::vector<FrameSyncObjects> m_frameSyncObjects{};
+    std::vector<vk::Fence> m_imagesInFlight{};
+
+    size_t m_currentFrame{};
+
+    static const size_t s_maxFramesInFlight;  // make it const until it is possible to change it, if ever...
     static std::unique_ptr<ContextVulkan> s_instance;
 };
 }  // namespace vulk

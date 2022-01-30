@@ -17,7 +17,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "FrameManager.hpp"
+#include "Vulk/FrameManager.hpp"
 
 #include <sstream>
 
@@ -59,4 +59,9 @@ std::string vulk::FrameManager::getFramerateString() const noexcept
 
     snprintf(buffer, BufferSize, "%u fps", m_framerate);
     return std::string{buffer};
+}
+
+std::ostream& operator<<(std::ostream& os, const vulk::FrameManager& frameManager)
+{
+    return os << frameManager.getFramerate() << " fps";
 }
