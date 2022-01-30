@@ -69,10 +69,7 @@ vulk::ContextVulkan::~ContextVulkan()
 
     if (m_device)
     {
-        {
-            VULK_SCOPED_PROFILER("ContextVulkan::~ContextVulkan()::waitIdle()");
-            m_device.waitIdle();
-        }
+        m_device.waitIdle();
 
         for (auto& frameSemaphore : m_frameSyncObjects)
         {
