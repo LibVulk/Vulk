@@ -17,7 +17,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "Contexts/ContextVulkan.hpp"
+#include "Vulk/Contexts/ContextVulkan.hpp"
 
 #include <GLFW/glfw3.h>
 
@@ -25,15 +25,18 @@
 #include <set>
 #include <string_view>
 
-#include "ScopedProfiler.hpp"
-#include "Shader.hpp"
-#include "Utils.hpp"
+#include "Vulk/ScopedProfiler.hpp"
+#include "Vulk/Shader.hpp"
+#include "Vulk/Utils.hpp"
 
+const size_t vulk::ContextVulkan::s_maxFramesInFlight{2};
 std::unique_ptr<vulk::ContextVulkan> vulk::ContextVulkan::s_instance{nullptr};
 
 vulk::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle)
 {
     VULK_SCOPED_PROFILER("ContextVulkan::ContextVulkan()");
+
+    assert(windowHandle);
 
 #if VULK_DEBUG
     // printAvailableValidationLayers();
@@ -48,6 +51,10 @@ vulk::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle)
     createImageViews();
     createRenderPass();
     createGraphicsPipeline();
+    createFrameBuffers();
+    createCommandPool();
+    createCommandBuffers();
+    createSyncObject();
 
 #if VULK_DEBUG
     std::cout << "Selected GPU name: " << m_physicalDevice.getProperties().deviceName << std::endl;
@@ -62,6 +69,20 @@ vulk::ContextVulkan::~ContextVulkan()
 
     if (m_device)
     {
+        m_device.waitIdle();
+
+        for (auto& frameSemaphore : m_frameSyncObjects)
+        {
+            m_device.destroy(frameSemaphore.imageAvailable);
+            m_device.destroy(frameSemaphore.renderFinished);
+            m_device.destroy(frameSemaphore.fence);
+        }
+
+        m_device.destroy(m_commandPool);
+
+        for (auto& framebuffer : m_swapChainFrameBuffers)
+            m_device.destroy(framebuffer);
+
         if (m_pipeline)
             m_device.destroy(m_pipeline);
 
@@ -94,6 +115,61 @@ void vulk::ContextVulkan::createInstance(GLFWwindow* windowHandle)
         return;
 
     s_instance = std::unique_ptr<ContextVulkan>(new ContextVulkan{windowHandle});
+    assert(s_instance);
+}
+
+void vulk::ContextVulkan::draw()
+{
+    static constexpr auto NO_TIMEOUT = std::numeric_limits<uint64_t>::max();
+
+    // Wait until the frame is released
+
+    const auto* fence = &m_frameSyncObjects[m_currentFrame].fence;
+
+    if (m_device.waitForFences(1, fence, true, NO_TIMEOUT) != vk::Result::eSuccess)
+        throw std::runtime_error("Failed to wait for fence");
+
+    const auto& [result, imageIndex] =
+      m_device.acquireNextImageKHR(m_swapChain, NO_TIMEOUT, m_frameSyncObjects[m_currentFrame].imageAvailable);
+
+    if (result != vk::Result::eSuccess)
+        throw std::runtime_error("Failed to acquire next image");
+
+    if (m_imagesInFlight[imageIndex])
+        (void) m_device.waitForFences(1, &m_imagesInFlight[imageIndex], true, NO_TIMEOUT);
+    m_imagesInFlight[imageIndex] = m_imagesInFlight[m_currentFrame];
+
+    const std::array swapChains{m_swapChain};
+    const std::array waitSemaphores{m_frameSyncObjects[m_currentFrame].imageAvailable};
+    const std::array signalSemaphores{m_frameSyncObjects[m_currentFrame].renderFinished};
+    const vk::PipelineStageFlags waitStages[] = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
+
+    vk::SubmitInfo submitInfo{};
+    submitInfo.waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size());
+    submitInfo.pWaitSemaphores = waitSemaphores.data();
+    submitInfo.pWaitDstStageMask = waitStages;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &m_commandBuffers[imageIndex];
+    submitInfo.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
+    submitInfo.pSignalSemaphores = signalSemaphores.data();
+
+    if (m_device.resetFences(1, fence) != vk::Result::eSuccess)
+        throw std::runtime_error("Failed to reset fence");
+
+    if (m_graphicsQueue.submit(1, &submitInfo, m_frameSyncObjects[m_currentFrame].fence) != vk::Result::eSuccess)
+        throw std::runtime_error("Failed to submit draw command buffer");
+
+    vk::PresentInfoKHR presentInfo{};
+    presentInfo.waitSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
+    presentInfo.pWaitSemaphores = signalSemaphores.data();
+    presentInfo.swapchainCount = static_cast<uint32_t>(swapChains.size());
+    presentInfo.pSwapchains = swapChains.data();
+    presentInfo.pImageIndices = &imageIndex;
+    // presentInfo.pResults = nullptr; // would be useful if ever adding more swap chains
+
+    (void) m_presentQueue.presentKHR(presentInfo);  // TODO: handle error?
+
+    m_currentFrame = (m_currentFrame + 1) % s_maxFramesInFlight;
 }
 
 void vulk::ContextVulkan::printAvailableValidationLayers()
@@ -170,6 +246,8 @@ void vulk::ContextVulkan::createInstance()
 void vulk::ContextVulkan::createSurface(GLFWwindow* windowHandle)
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createSurface()");
+
+    assert(windowHandle);
 
     VkSurfaceKHR surface;
 
@@ -261,6 +339,8 @@ void vulk::ContextVulkan::createLogicalDevice()
 void vulk::ContextVulkan::createSwapChain(GLFWwindow* windowHandle)
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createSwapChain()");
+
+    assert(windowHandle);
 
     chooseSwapSurfaceFormat();
     chooseSwapPresentMode();
@@ -360,11 +440,21 @@ void vulk::ContextVulkan::createRenderPass()
     subpass.colorAttachmentCount = 1;
     subpass.pColorAttachments = &colorAttachmentRef;
 
+    vk::SubpassDependency subpassDependency{};
+    subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    subpassDependency.dstSubpass = 0;
+    subpassDependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    subpassDependency.srcAccessMask = {};
+    subpassDependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    subpassDependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+
     vk::RenderPassCreateInfo renderPassCreateInfo{};
     renderPassCreateInfo.attachmentCount = 1;
     renderPassCreateInfo.pAttachments = &colorAttachment;
     renderPassCreateInfo.subpassCount = 1;
     renderPassCreateInfo.pSubpasses = &subpass;
+    renderPassCreateInfo.dependencyCount = 1;
+    renderPassCreateInfo.pDependencies = &subpassDependency;
 
     m_renderPass = m_device.createRenderPass(renderPassCreateInfo);
 
@@ -426,7 +516,7 @@ void vulk::ContextVulkan::createGraphicsPipeline()
     vk::PipelineColorBlendAttachmentState colorBlendAttachment{};
     colorBlendAttachment.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
                                           vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
-    if constexpr (tmpTestEnabled)
+    if constexpr (tmpTestEnabled)  // TODO: investigate and decide what to do
     {
         colorBlendAttachment.blendEnable = true;
         colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
@@ -448,7 +538,7 @@ void vulk::ContextVulkan::createGraphicsPipeline()
 
     std::array dynamicStatesArray = {vk::DynamicState::eViewport, vk::DynamicState::eLineWidth};
     vk::PipelineDynamicStateCreateInfo dynamicState{};
-    dynamicState.dynamicStateCount = dynamicStatesArray.size();
+    dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStatesArray.size());
     dynamicState.pDynamicStates = dynamicStatesArray.data();
 
     vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo{};  // empty for now
@@ -480,6 +570,112 @@ void vulk::ContextVulkan::createGraphicsPipeline()
 
     if (m_device.createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, &m_pipeline) != vk::Result::eSuccess)
         throw std::runtime_error("Failed to create the graphics pipeline");
+}
+
+void vulk::ContextVulkan::createFrameBuffers()
+{
+    VULK_SCOPED_PROFILER("ContextVulkan::createFrameBuffers()");
+
+    m_swapChainFrameBuffers.reserve(m_swapChainImageViews.size());
+
+    for (const auto& imageView : m_swapChainImageViews)
+    {
+        vk::ImageView attachments[] = {imageView};
+
+        vk::FramebufferCreateInfo framebufferCreateInfo{};
+        framebufferCreateInfo.renderPass = m_renderPass;
+        framebufferCreateInfo.attachmentCount = 1;
+        framebufferCreateInfo.pAttachments = attachments;
+        framebufferCreateInfo.width = m_extent.width;
+        framebufferCreateInfo.height = m_extent.height;
+        framebufferCreateInfo.layers = 1;
+
+        auto framebuffer = m_device.createFramebuffer(framebufferCreateInfo);
+
+        if (!framebuffer)
+            throw std::runtime_error("Failed to create framebuffer");
+
+        m_swapChainFrameBuffers.push_back(framebuffer);
+    }
+}
+
+void vulk::ContextVulkan::createCommandPool()
+{
+    VULK_SCOPED_PROFILER("ContextVulkan::createCommandPool()");
+
+    vk::CommandPoolCreateInfo commandPoolCreateInfo{};
+    commandPoolCreateInfo.queueFamilyIndex = m_queueFamilyIndices.graphicsFamily.value();
+    // commandPoolCreateInfo.flags = ??; // TODO: may need to change this one later
+
+    m_commandPool = m_device.createCommandPool(commandPoolCreateInfo);
+
+    if (!m_commandPool)
+        throw std::runtime_error("Failed to create the command pool");
+}
+
+void vulk::ContextVulkan::createCommandBuffers()
+{
+    VULK_SCOPED_PROFILER("ContextVulkan::createCommandBuffers()");
+
+    m_commandBuffers.resize(m_swapChainFrameBuffers.size());
+
+    vk::CommandBufferAllocateInfo allocateInfo{};
+    allocateInfo.commandPool = m_commandPool;
+    allocateInfo.level = vk::CommandBufferLevel::ePrimary;
+    allocateInfo.commandBufferCount = static_cast<uint32_t>(m_swapChainFrameBuffers.size());
+
+    if (m_device.allocateCommandBuffers(&allocateInfo, m_commandBuffers.data()) != vk::Result::eSuccess)
+        throw std::runtime_error("Failed to allocate command buffers");
+
+    for (size_t i = 0; i < m_swapChainFrameBuffers.size(); ++i)
+    {
+        vk::CommandBufferBeginInfo beginInfo{};
+        // beginInfo.flags = vk::CommandBufferUsageFlagBits::...;
+        // beginInfo.pInheritanceInfo = nullptr;
+
+        if (m_commandBuffers[i].begin(&beginInfo) != vk::Result::eSuccess)
+            throw std::runtime_error("Failed to begin recording command buffer");
+
+        vk::ClearValue clearValue{};
+        clearValue.color = vk::ClearColorValue{std::array{0.f, 0.f, 0.f, 1.f}};
+
+        vk::RenderPassBeginInfo renderPassBeginInfo{};
+        renderPassBeginInfo.renderPass = m_renderPass;
+        renderPassBeginInfo.framebuffer = m_swapChainFrameBuffers[i];
+        renderPassBeginInfo.renderArea.offset = vk::Offset2D{0, 0};
+        renderPassBeginInfo.renderArea.extent = m_extent;
+        renderPassBeginInfo.clearValueCount = 1;
+        renderPassBeginInfo.pClearValues = &clearValue;
+
+        m_commandBuffers[i].beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
+        m_commandBuffers[i].bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline);
+        m_commandBuffers[i].draw(3, 1, 0, 0);
+        m_commandBuffers[i].endRenderPass();
+        m_commandBuffers[i].end();
+    }
+}
+
+void vulk::ContextVulkan::createSyncObject()
+{
+    vk::SemaphoreCreateInfo semaphoreInfo{};
+    vk::FenceCreateInfo fenceInfo{};
+
+    fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
+
+    m_imagesInFlight.resize(m_swapChainImages.size());
+    m_frameSyncObjects.resize(s_maxFramesInFlight);
+
+    for (auto& frameSyncObj : m_frameSyncObjects)
+    {
+        if (m_device.createSemaphore(&semaphoreInfo, nullptr, &frameSyncObj.imageAvailable) != vk::Result::eSuccess)
+            throw std::runtime_error("Failed to create a frame semaphore");
+
+        if (m_device.createSemaphore(&semaphoreInfo, nullptr, &frameSyncObj.renderFinished) != vk::Result::eSuccess)
+            throw std::runtime_error("Failed to create a frame semaphore");
+
+        if (m_device.createFence(&fenceInfo, nullptr, &frameSyncObj.fence) != vk::Result::eSuccess)
+            throw std::runtime_error("Failed to create a fence");
+    }
 }
 
 void vulk::ContextVulkan::chooseSwapSurfaceFormat()
@@ -521,6 +717,8 @@ void vulk::ContextVulkan::chooseSwapPresentMode()
 
 void vulk::ContextVulkan::chooseSwapExtent(GLFWwindow* windowHandle)
 {
+    assert(windowHandle);
+
     const auto& caps = m_swapChainSupport.capabilities;
 
     if (caps.currentExtent.width != std::numeric_limits<uint32_t>::max())
@@ -598,5 +796,6 @@ vulk::ContextVulkan::querySwapChainSupport(const vk::PhysicalDevice& device) con
 
 vulk::ContextVulkan& vulk::ContextVulkan::getInstance()
 {
+    assert(s_instance);
     return *s_instance;
 }

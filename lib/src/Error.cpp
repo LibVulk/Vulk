@@ -17,7 +17,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "Error.hpp"
+#include "Vulk/Error.hpp"
 
 #include <GLFW/glfw3.h>
 
