@@ -12,6 +12,41 @@ Also, we are liking the API so far so our hope is to make it grow as far as poss
 
 As said above, the lib is very *very* work in progress. It is not ready to be used. But if you are interested, thank you for that and hopefully we can release the 1.0 soon enough! 😄
 
+## Roadmap
+
+> Please be aware this list in non-exhaustive and the order is not relevant
+
+### Short term
+- [ ] Basic shapes abstraction & rendering
+  - Vertex Array
+    - Triangle
+    - Rectangle
+    - Sphere
+  - Line
+- [ ] Sprites and textures
+- [ ] Spritesheet abstraction for animations
+- [ ] Document everything
+  - Doxygen doc and comment stuff
+  - GitHub.io page
+  - Wiki
+  - READMEs and examples
+- [ ] Audio loading and streaming
+- [ ] Parallel rendering
+
+### Medium term
+- [ ] Text and fonts
+- [ ] Networking
+- [ ] [Detach from conan #9](https://github.com/LibVulk/Vulk/issues/9)
+- [ ] [macOS support #10](https://github.com/LibVulk/Vulk/issues/10)
+- [ ] [Package library when publishing releases on GitHub #12](https://github.com/LibVulk/Vulk/issues/12)
+- [ ] [Add support for multiple window instances #20](https://github.com/LibVulk/Vulk/issues/20)
+
+### Long term
+- [ ] **Optional opt-in** library extension to make game-dev and graphic-dev easier  
+  - Stuff like a mini-engine with basic logic such as an ECS, draw/tick, physics, and much much more
+- [ ] 3D support
+
+
 ## Contributors
 
 * [Maxime Houis](https://github.com/MaximeHouis)
@@ -19,7 +54,7 @@ As said above, the lib is very *very* work in progress. It is not ready to be us
 
 ## Contribute
 
-For now, we have too keep submitions closed for a short time. But if you wish to leave suggestions, feel free to do so!
+For now, we have too keep submissions closed for a short time. But if you wish to leave suggestions, feel free to do so!
 
 ___
 
