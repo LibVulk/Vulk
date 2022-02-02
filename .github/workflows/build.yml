@@ -1,6 +1,19 @@
 name: C++ Cross-Platform Build
 
-on: push
+on:
+  push:
+    paths:
+      - '*.c'
+      - '*.h'
+      - '*.cpp'
+      - '*.hpp'
+      - '*.cmake'
+      - '**/shaders/**'
+      - '.clang-format'
+      - 'CMakeLists.txt'
+      - 'conanfile.txt'
+      - 'requirements.txt'
+      - '.github/workflows/**'
 
 defaults:
   run:
@@ -31,6 +44,7 @@ jobs:
       matrix:
         os: [ ubuntu-20.04, windows-2019 ]
         mode: [ "Debug", "Release" ]
+        warn: [ "ON", "OFF" ]
         include:
           - os: ubuntu-20.04
             cxx-override: CC=gcc-10 CXX=g++-10
@@ -72,7 +86,11 @@ jobs:
           mkdir build
           cd build
           ${{ matrix.cxx-override }} \
-          cmake -DCMAKE_BUILD_TYPE=${{ matrix.mode }} -DVULK_ENABLE_PCH=OFF ..
+          cmake \
+            -DCMAKE_BUILD_TYPE=${{ matrix.mode }} \
+            -DVULK_WARNINGS_AS_ERRORS=${{ matrix.warn }} \
+            -DVULK_ENABLE_PCH=OFF \
+            ..
 
       - name: Build
         working-directory: build

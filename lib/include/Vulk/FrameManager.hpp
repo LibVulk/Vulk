@@ -54,3 +54,5 @@ private:
     std::optional<OnSecondCallback> m_onSecondCallback{std::nullopt};
 };
 }  // namespace vulk
+
+std::ostream& operator<<(std::ostream& os, const vulk::FrameManager& frameManager);

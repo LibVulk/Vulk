@@ -5,6 +5,7 @@ add_library(
         include/Vulk/Vec3.hpp
         include/Vulk/Rect.hpp
         include/Vulk/Mat3.hpp
+        include/Vulk/ClassUtils.hpp
         src/Window.cpp include/Vulk/Window.hpp
         src/Contexts/ContextGLFW.cpp include/Vulk/Contexts/ContextGLFW.hpp
         src/Error.cpp include/Vulk/Error.hpp
@@ -16,7 +17,7 @@ add_library(
         src/Keyboard.cpp include/Vulk/Keyboard.hpp
  )
 
-target_include_directories(${PROJECT_NAME} PRIVATE include/Vulk)
+target_include_directories(${PROJECT_NAME} PRIVATE include/)
 
 if (${PROJECT_PREFIX}_ENABLE_PCH)
     # Saves compile time, but the project has to build without them (checked on the CI)
