@@ -172,4 +172,4 @@ private:
 
     static std::unordered_map<int, bool> s_keyboardInputs;
 };
-};  // namespace vulk
+}  // namespace vulk
