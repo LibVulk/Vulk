@@ -27,6 +27,8 @@
 #include "Contexts/ContextVulkan.hpp"
 #include "Error.hpp"
 
+static void onKeyPressed(GLFWwindow* window, int key, int scancode, int action, int mods);
+
 vulk::Window::Window(int width, int height, const char* title)
 {
     ContextGLFW::ensureInstance();
@@ -38,6 +40,10 @@ vulk::Window::Window(int width, int height, const char* title)
 
     if (!m_windowHandle)
         throw std::runtime_error(utils::getGLFWError());
+
+    m_keyboard = std::make_unique<Keyboard>(Keyboard(m_windowHandle));
+
+    glfwSetKeyCallback(m_windowHandle, onKeyPressed);
 
     ContextVulkan::createInstance(m_windowHandle);
 }
@@ -79,4 +85,10 @@ void vulk::Window::close() noexcept
 bool vulk::Window::isOpen() const noexcept
 {
     return !glfwWindowShouldClose(m_windowHandle);
+}
+
+static void onKeyPressed(GLFWwindow* window, int, int scancode, int action, int)
+{
+    auto keyboard = vulk::Keyboard::getKeyboard(window);
+    keyboard->onKeyPressed(scancode, action);
 }

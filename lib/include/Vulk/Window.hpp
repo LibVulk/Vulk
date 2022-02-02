@@ -20,6 +20,7 @@
 #pragma once
 
 #include "FrameManager.hpp"
+#include "Keyboard.hpp"
 
 struct GLFWwindow;
 
@@ -47,5 +48,7 @@ public:
 private:
     GLFWwindow* m_windowHandle{nullptr};
     FrameManager m_frameManager{};
+
+    std::unique_ptr<Keyboard> m_keyboard;
 };
 }  // namespace vulk

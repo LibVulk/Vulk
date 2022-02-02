@@ -13,7 +13,8 @@ add_library(
         src/ScopedProfiler.cpp include/Vulk/ScopedProfiler.hpp
         src/Shader.cpp include/Vulk/Shader.hpp
         src/Utils.cpp include/Vulk/Utils.hpp
-)
+        src/Keyboard.cpp include/Vulk/Keyboard.hpp
+ )
 
 target_include_directories(${PROJECT_NAME} PRIVATE include/Vulk)
 
