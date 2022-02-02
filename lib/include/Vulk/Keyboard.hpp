@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <GLFW\glfw3.h>
+#include <GLFW/glfw3.h>
 
 #include <functional>
 #include <unordered_map>
@@ -158,7 +158,6 @@ enum class Key
 class Keyboard final
 {
 public:
-
     explicit Keyboard(GLFWwindow* window);
     ~Keyboard();
 

@@ -67,4 +67,3 @@ bool vulk::Keyboard::isKeyDown(vulk::Key key) noexcept
         return s_keyboardInputs[sc];
     return false;
 }
-
