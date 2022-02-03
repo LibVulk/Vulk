@@ -1,19 +1,6 @@
 name: C++ Cross-Platform Build
 
-on:
-  push:
-    paths:
-      - '*.c'
-      - '*.h'
-      - '*.cpp'
-      - '*.hpp'
-      - '*.cmake'
-      - '**/shaders/**'
-      - '.clang-format'
-      - 'CMakeLists.txt'
-      - 'conanfile.txt'
-      - 'requirements.txt'
-      - '.github/workflows/**'
+on: push
 
 defaults:
   run:
