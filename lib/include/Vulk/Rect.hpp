@@ -19,12 +19,12 @@
 
 #pragma once
 
-#include <SFVL/Vec2.hpp>
+#include <Vulk/Vec2.hpp>
 
 #include <algorithm>
 #include <ostream>
 
-namespace sfvl {
+namespace vulk {
 template<typename T>
 struct Rect
 {
@@ -77,4 +77,4 @@ using Rectf = Rect<float>;
 using Rectd = Rect<double>;
 using Recti = Rect<int>;
 using Rectu = Rect<unsigned int>;
-}  // namespace sfvl
+}  // namespace vulk
