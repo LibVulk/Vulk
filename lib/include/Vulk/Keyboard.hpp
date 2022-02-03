@@ -161,7 +161,7 @@ public:
     explicit Keyboard(GLFWwindow* window);
     ~Keyboard();
 
-    bool isKeyDown(vulk::Key key) noexcept;
+    inline bool isKeyDown(vulk::Key key) const noexcept { return m_keyboardInputs[static_cast<size_t>(key)]; };
 
     void onKeyPressed(int scancode, int action);
 
@@ -169,7 +169,6 @@ public:
 
 private:
     static std::unordered_map<GLFWwindow*, Keyboard*> s_linkedKeyboard;
-
-    static std::unordered_map<int, bool> s_keyboardInputs;
+    std::array<bool, GLFW_KEY_LAST + 1> m_keyboardInputs{};
 };
 }  // namespace vulk
