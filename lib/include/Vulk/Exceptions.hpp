@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <vulkan/vulkan_enums.hpp>
+#include <vulkan/vulkan.hpp>
 
 #include <stdexcept>
 
