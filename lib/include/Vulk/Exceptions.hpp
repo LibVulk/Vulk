@@ -19,16 +19,11 @@
 
 #pragma once
 
+#include <vulkan/vulkan_enums.hpp>
+
 #include <stdexcept>
 
 #include "Vulk/ClassUtils.hpp"
-
-namespace vk {
-enum class Result;
-
-template<typename T>
-struct ResultValue;
-}  // namespace vk
 
 namespace vulk {
 class Exception : public std::exception
