@@ -25,7 +25,7 @@
 
 #include "Vulk/Contexts/ContextGLFW.hpp"
 #include "Vulk/Contexts/ContextVulkan.hpp"
-#include "Vulk/Error.hpp"
+#include "Vulk/Exceptions.hpp"
 
 vulk::Window::Window(unsigned int width, unsigned int height, const char* title)
 {
@@ -41,7 +41,7 @@ vulk::Window::Window(unsigned int width, unsigned int height, const char* title)
     m_windowHandle = glfwCreateWindow(static_cast<int>(width), static_cast<int>(height), title, nullptr, nullptr);
 
     if (!m_windowHandle)
-        throw std::runtime_error(utils::getGLFWError());
+        throw GLFWException();
 
     ContextVulkan::createInstance(m_windowHandle);
 }
