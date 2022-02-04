@@ -107,11 +107,10 @@ private:
 
         void destroy(vk::Device& device)
         {
-            if (imageAvailable)
-                device.destroy(imageAvailable);
+            device.destroy(imageAvailable);
+            device.destroy(renderFinished);
+            device.destroy(fence);
         }
-
-        [[nodiscard]] operator bool() const noexcept { return imageAvailable && renderFinished && fence; }
     };
 
     using QueueFamilyPropertiesList = std::vector<vk::QueueFamilyProperties>;

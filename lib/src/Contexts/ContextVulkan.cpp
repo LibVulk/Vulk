@@ -73,41 +73,26 @@ vulk::ContextVulkan::~ContextVulkan()
         m_device.waitIdle();
 
         for (auto& frameSemaphore : m_frameSyncObjects)
-        {
-            m_device.destroy(frameSemaphore.imageAvailable);
-            m_device.destroy(frameSemaphore.renderFinished);
-            m_device.destroy(frameSemaphore.fence);
-        }
+            frameSemaphore.destroy(m_device);
 
         m_device.destroy(m_commandPool);
 
         for (auto& framebuffer : m_swapChainFrameBuffers)
             m_device.destroy(framebuffer);
 
-        if (m_pipeline)
-            m_device.destroy(m_pipeline);
-
-        if (m_pipelineLayout)
-            m_device.destroy(m_pipelineLayout);
-
-        if (m_renderPass)
-            m_device.destroy(m_renderPass);
+        m_device.destroy(m_pipeline);
+        m_device.destroy(m_pipelineLayout);
+        m_device.destroy(m_renderPass);
 
         for (auto& imageView : m_swapChainImageViews)
             m_device.destroy(imageView);
 
-        if (m_swapChain)
-            m_device.destroy(m_swapChain);
+        m_device.destroy(m_swapChain);
     }
 
-    if (m_surface)
-        m_instance.destroy(m_surface);
-
-    if (m_device)
-        m_device.destroy();
-
-    if (m_instance)
-        m_instance.destroy();
+    m_instance.destroy(m_surface);
+    m_device.destroy();
+    m_instance.destroy();
 }
 
 void vulk::ContextVulkan::createInstance(GLFWwindow* windowHandle)
