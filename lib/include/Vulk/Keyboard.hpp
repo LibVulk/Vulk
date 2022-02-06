@@ -21,8 +21,8 @@
 
 #include <GLFW/glfw3.h>
 
-#include <functional>
 #include <array>
+#include <functional>
 
 namespace vulk {
 
