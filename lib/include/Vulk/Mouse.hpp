@@ -54,7 +54,7 @@ public:
 
     [[nodiscard]] inline static Mouse* getMouse(GLFWwindow* window) { return s_linkedMouse[window]; }
 
-private:   
+private:
     static std::unordered_map<GLFWwindow*, Mouse*> s_linkedMouse;
     std::array<bool, GLFW_MOUSE_BUTTON_LAST + 1> m_mouseInputs{};
 };
