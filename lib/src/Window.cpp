@@ -28,6 +28,7 @@
 #include "Vulk/Error.hpp"
 
 static void onKeyPressed(GLFWwindow* window, int key, int scancode, int action, int mods);
+static void onButtonPressed(GLFWwindow* window, int button, int action, int mods);
 
 vulk::Window::Window(unsigned int width, unsigned int height, const char* title)
 {
@@ -46,8 +47,10 @@ vulk::Window::Window(unsigned int width, unsigned int height, const char* title)
         throw std::runtime_error(utils::getGLFWError());
 
     m_keyboard = std::make_unique<Keyboard>(Keyboard(m_windowHandle));
+    m_mouse = std::make_unique<Mouse>(Mouse(m_windowHandle));
 
     glfwSetKeyCallback(m_windowHandle, onKeyPressed);
+    glfwSetMouseButtonCallback(m_windowHandle, onButtonPressed);
 
     ContextVulkan::createInstance(m_windowHandle);
 }
@@ -97,4 +100,10 @@ static void onKeyPressed(GLFWwindow* window, int, int scancode, int action, int)
 {
     auto keyboard = vulk::Keyboard::getKeyboard(window);
     keyboard->onKeyPressed(scancode, action);
+}
+
+static void onButtonPressed(GLFWwindow* window, int button, int action, int)
+{
+    auto mouse = vulk::Mouse::getMouse(window);
+    mouse->onButtonPressed(button, action);
 }

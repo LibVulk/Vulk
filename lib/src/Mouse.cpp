@@ -17,42 +17,30 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
+#include "Vulk/Mouse.hpp"
 
-#include <memory>
+#include <iostream>
 
-#include "FrameManager.hpp"
-#include "Keyboard.hpp"
-#include "Mouse.hpp"
+std::unordered_map<GLFWwindow*, vulk::Mouse*> vulk::Mouse::s_linkedMouse{};
 
-struct GLFWwindow;
-
-namespace vulk {
-class Window
+vulk::Mouse::Mouse(GLFWwindow* window)
 {
-public:
-    Window(unsigned int width, unsigned int height, const char* title);
-    ~Window();
+    s_linkedMouse[window] = this;
+}
 
-    Window(Window&& rhs) noexcept;
-    Window& operator=(Window&& rhs) noexcept;
+vulk::Mouse::~Mouse()
+{
+}
 
-    Window(const Window&) = delete;
-    Window& operator=(const Window&) = delete;
-
-    void display();
-    void pollEvents();
-    void close() noexcept;
-
-    [[nodiscard]] bool isOpen() const noexcept;
-    [[nodiscard]] FrameManager& getFrameManager() noexcept { return m_frameManager; }
-    [[nodiscard]] const FrameManager& getFrameManager() const noexcept { return m_frameManager; }
-
-private:
-    GLFWwindow* m_windowHandle{nullptr};
-    FrameManager m_frameManager{};
-
-    std::unique_ptr<Keyboard> m_keyboard{nullptr};
-    std::unique_ptr<Mouse> m_mouse{nullptr};
-};
-}  // namespace vulk
+void vulk::Mouse::onButtonPressed(int button, int action)
+{
+    if (action == GLFW_PRESS)
+    {
+        std::cout << "Button pressed !" << std::endl;
+        m_mouseInputs[static_cast<size_t>(button)] = true;
+    } else if (action == GLFW_RELEASE)
+    {
+        std::cout << "Button released !" << std::endl;
+        m_mouseInputs[static_cast<size_t>(button)] = false;
+    }
+}

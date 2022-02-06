@@ -37,10 +37,10 @@ void vulk::Keyboard::onKeyPressed(int scancode, int action)
     if (action == GLFW_PRESS)
     {
         std::cout << "Key Pressed ! " << std::endl;
-        m_keyboardInputs[scancode] = true;
+        m_keyboardInputs[static_cast<size_t>(scancode)] = true;
     } else if (action == GLFW_RELEASE)
     {
         std::cout << "Key Released !" << std::endl;
-        m_keyboardInputs[scancode] = false;
+        m_keyboardInputs[static_cast<size_t>(scancode)] = false;
     }
 }
