@@ -25,6 +25,7 @@ std::unordered_map<GLFWwindow*, vulk::Mouse*> vulk::Mouse::s_linkedMouse{};
 
 vulk::Mouse::Mouse(GLFWwindow* window)
 {
+    assert(window);
     s_linkedMouse[window] = this;
 }
 

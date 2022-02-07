@@ -46,8 +46,8 @@ vulk::Window::Window(unsigned int width, unsigned int height, const char* title)
     if (!m_windowHandle)
         throw std::runtime_error(utils::getGLFWError());
 
-    m_keyboard = std::make_unique<Keyboard>(Keyboard(m_windowHandle));
-    m_mouse = std::make_unique<Mouse>(Mouse(m_windowHandle));
+    m_keyboard = std::make_unique<Keyboard>(m_windowHandle);
+    m_mouse = std::make_unique<Mouse>(m_windowHandle);
 
     glfwSetKeyCallback(m_windowHandle, onKeyPressed);
     glfwSetMouseButtonCallback(m_windowHandle, onButtonPressed);

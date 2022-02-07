@@ -25,6 +25,7 @@ std::unordered_map<GLFWwindow*, vulk::Keyboard*> vulk::Keyboard::s_linkedKeyboar
 
 vulk::Keyboard::Keyboard(GLFWwindow* window)
 {
+    assert(window);
     s_linkedKeyboard[window] = this;
 }
 
