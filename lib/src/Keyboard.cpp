@@ -19,6 +19,7 @@
 
 #include "Vulk/Keyboard.hpp"
 
+#include <cassert>
 #include <iostream>
 
 std::unordered_map<GLFWwindow*, vulk::Keyboard*> vulk::Keyboard::s_linkedKeyboard{};

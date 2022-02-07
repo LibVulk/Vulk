@@ -19,6 +19,7 @@
 
 #include "Vulk/Mouse.hpp"
 
+#include <cassert>
 #include <iostream>
 
 std::unordered_map<GLFWwindow*, vulk::Mouse*> vulk::Mouse::s_linkedMouse{};
