@@ -39,5 +39,10 @@ Vertex::AttributeDescriptions Vertex::getAttributeDescriptions() noexcept
     attributeDescriptions[0].format = vk::Format::eR32G32Sfloat;
     attributeDescriptions[0].offset = offsetof(Vertex, position);
 
+    attributeDescriptions[1].binding = 0;
+    attributeDescriptions[1].location = 0;
+    attributeDescriptions[1].format = vk::Format::eR32G32B32Sfloat;
+    attributeDescriptions[1].offset = offsetof(Vertex, color);
+
     return attributeDescriptions;
 }

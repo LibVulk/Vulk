@@ -28,6 +28,7 @@
 #include "Vulk/ScopedProfiler.hpp"
 #include "Vulk/Shader.hpp"
 #include "Vulk/Utils.hpp"
+#include "Vulk/Vertex.hpp"
 
 const size_t vulk::ContextVulkan::s_maxFramesInFlight{2};
 std::unique_ptr<vulk::ContextVulkan> vulk::ContextVulkan::s_instance{nullptr};
@@ -472,9 +473,14 @@ void vulk::ContextVulkan::createGraphicsPipeline()
     vk::PipelineShaderStageCreateInfo shaderStages[] = {vert.getShaderStageCreateInfo(),
                                                         frag.getShaderStageCreateInfo()};
 
+    auto bindingDescription = Vertex::getBindingDescription();
+    auto attributeDescriptions = Vertex::getAttributeDescriptions();
+
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo{};
-    vertexInputInfo.vertexBindingDescriptionCount = 0;
-    vertexInputInfo.vertexAttributeDescriptionCount = 0;
+    vertexInputInfo.vertexBindingDescriptionCount = 1;
+    vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+    vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+    vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly{};
     inputAssembly.topology = vk::PrimitiveTopology::eTriangleList;

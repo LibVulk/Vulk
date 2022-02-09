@@ -17,7 +17,7 @@ add_library(
         src/Vertex.cpp include/Vulk/Vertex.hpp
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE include/)
+target_include_directories(${PROJECT_NAME} PRIVATE include)
 
 if (${PROJECT_PREFIX}_ENABLE_PCH)
     # Saves compile time, but the project has to build without them (checked on the CI)
