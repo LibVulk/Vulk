@@ -104,6 +104,13 @@ private:
         vk::Semaphore imageAvailable{};
         vk::Semaphore renderFinished{};
         vk::Fence fence{};
+
+        void destroy(vk::Device& device)
+        {
+            device.destroy(imageAvailable);
+            device.destroy(renderFinished);
+            device.destroy(fence);
+        }
     };
 
     using QueueFamilyPropertiesList = std::vector<vk::QueueFamilyProperties>;

@@ -19,13 +19,15 @@
 #include <fstream>
 #include <vector>
 
+#include "Vulk/Exceptions.hpp"
+
 std::vector<char> vulk::utils::fileToBinary(const char* filePath)
 {
     std::ifstream file{filePath, std::ios::ate | std::ios::binary};
 
     if (!file.is_open())
         // TODO: indicate permission error, not found, ...
-        throw std::runtime_error(std::string(filePath) + ": unable to open file");
+        throw IOException(std::string(filePath) + ": unable to open file");
 
     // TODO: there has to be a better way for this...
     const auto fileSize = static_cast<size_t>(file.tellg());

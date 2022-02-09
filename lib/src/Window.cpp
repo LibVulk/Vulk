@@ -25,7 +25,7 @@
 
 #include "Vulk/Contexts/ContextGLFW.hpp"
 #include "Vulk/Contexts/ContextVulkan.hpp"
-#include "Vulk/Error.hpp"
+#include "Vulk/Exceptions.hpp"
 
 static void onKeyPressed(GLFWwindow* window, int key, int scancode, int action, int mods);
 static void onButtonPressed(GLFWwindow* window, int button, int action, int mods);
@@ -44,7 +44,7 @@ vulk::Window::Window(unsigned int width, unsigned int height, const char* title)
     m_windowHandle = glfwCreateWindow(static_cast<int>(width), static_cast<int>(height), title, nullptr, nullptr);
 
     if (!m_windowHandle)
-        throw std::runtime_error(utils::getGLFWError());
+        throw GLFWException();
 
     m_keyboard = std::make_unique<Keyboard>(m_windowHandle);
     m_mouse = std::make_unique<Mouse>(m_windowHandle);
