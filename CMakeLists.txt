@@ -40,3 +40,4 @@ endif ()
 
 add_subdirectory(lib)
 add_subdirectory(example-app)
+add_subdirectory(tests)
