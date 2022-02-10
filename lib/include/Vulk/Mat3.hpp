@@ -25,7 +25,7 @@
 #include <cmath>
 #include <iostream>
 
-namespace sfvl {
+namespace vulk {
 template<typename T>
 struct Mat3
 {
@@ -73,4 +73,4 @@ struct Mat3
                   << mat3.m[6] << ' ' << mat3.m[7] << ' ' << mat3.m[8];
     }
 };
-}  // namespace sfvl
+}  // namespace vulk

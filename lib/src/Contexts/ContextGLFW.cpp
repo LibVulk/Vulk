@@ -24,14 +24,14 @@
 #include <cassert>
 #include <stdexcept>
 
-#include "Vulk/Error.hpp"
+#include "Vulk/Exceptions.hpp"
 
 std::unique_ptr<vulk::ContextGLFW> vulk::ContextGLFW::s_instance{nullptr};
 
 vulk::ContextGLFW::ContextGLFW()
 {
     if (glfwInit() != GLFW_TRUE)
-        throw std::runtime_error(utils::getGLFWError());
+        throw GLFWException();
 }
 
 vulk::ContextGLFW::~ContextGLFW()

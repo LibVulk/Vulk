@@ -21,6 +21,7 @@
 
 #include <iostream>
 
+#include "Vulk/Exceptions.hpp"
 #include "Vulk/ScopedProfiler.hpp"
 #include "Vulk/Utils.hpp"
 
@@ -31,10 +32,8 @@ vulk::Shader::Shader(vk::Device& device, const char* filePath, vulk::Shader::Typ
     shaderModuleCreateInfo.codeSize = m_buffer.size();
     shaderModuleCreateInfo.pCode = reinterpret_cast<decltype(shaderModuleCreateInfo.pCode)>(m_buffer.data());
 
-    m_shaderModule = device.createShaderModule(shaderModuleCreateInfo);
-
-    if (!m_shaderModule)
-        throw std::runtime_error("Unable to create Vulkan Shader module");
+    handleVulkanError(device.createShaderModule(&shaderModuleCreateInfo, nullptr, &m_shaderModule));
+    assert(m_shaderModule);
 
     m_pipelineShaderStageCreateInfo.stage = type;
     m_pipelineShaderStageCreateInfo.module = m_shaderModule;

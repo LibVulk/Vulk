@@ -17,8 +17,32 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
+#include "Vulk/Keyboard.hpp"
 
-namespace vulk::utils {
-[[nodiscard]] const char* getGLFWError() noexcept;
+#include <cassert>
+#include <iostream>
+
+std::unordered_map<GLFWwindow*, vulk::Keyboard*> vulk::Keyboard::s_linkedKeyboard{};
+
+vulk::Keyboard::Keyboard(GLFWwindow* window)
+{
+    assert(window);
+    s_linkedKeyboard[window] = this;
+}
+
+vulk::Keyboard::~Keyboard()
+{
+}
+
+void vulk::Keyboard::onKeyPressed(int scancode, int action)
+{
+    if (action == GLFW_PRESS)
+    {
+        std::cout << "Key Pressed ! " << std::endl;
+        m_keyboardInputs[static_cast<size_t>(scancode)] = true;
+    } else if (action == GLFW_RELEASE)
+    {
+        std::cout << "Key Released !" << std::endl;
+        m_keyboardInputs[static_cast<size_t>(scancode)] = false;
+    }
 }

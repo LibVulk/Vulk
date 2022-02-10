@@ -17,14 +17,32 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "Vulk/Error.hpp"
+#include "Vulk/Mouse.hpp"
 
-#include <GLFW/glfw3.h>
+#include <cassert>
+#include <iostream>
 
-const char* vulk::utils::getGLFWError() noexcept
+std::unordered_map<GLFWwindow*, vulk::Mouse*> vulk::Mouse::s_linkedMouse{};
+
+vulk::Mouse::Mouse(GLFWwindow* window)
 {
-    const char* error;
+    assert(window);
+    s_linkedMouse[window] = this;
+}
 
-    glfwGetError(&error);
-    return error;
+vulk::Mouse::~Mouse()
+{
+}
+
+void vulk::Mouse::onButtonPressed(int button, int action)
+{
+    if (action == GLFW_PRESS)
+    {
+        std::cout << "Button pressed !" << std::endl;
+        m_mouseInputs[static_cast<size_t>(button)] = true;
+    } else if (action == GLFW_RELEASE)
+    {
+        std::cout << "Button released !" << std::endl;
+        m_mouseInputs[static_cast<size_t>(button)] = false;
+    }
 }
