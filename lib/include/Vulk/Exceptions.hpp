@@ -73,9 +73,7 @@ VULK_DEFINE_EXCEPTION(LibraryException, Exception)
 class GLFWException : public LibraryException
 {
 public:
-    explicit GLFWException(const std::string& message = getGLFWError()) : LibraryException(message, "GLFWException")
-    {
-    }
+    explicit GLFWException(const std::string& message = getGLFWError()) : LibraryException(message, "GLFWException") {}
 
     static std::string getGLFWError() noexcept;
 };

@@ -22,8 +22,7 @@
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.hpp>
 
-vulk::VulkanException::VulkanException(vk::Result result)
-    : LibraryException{vk::to_string(result), "VulkanException"}
+vulk::VulkanException::VulkanException(vk::Result result) : LibraryException{vk::to_string(result), "VulkanException"}
 {
 }
 
