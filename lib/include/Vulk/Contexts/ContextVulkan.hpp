@@ -26,6 +26,7 @@
 #include <optional>
 
 #include "Vulk/ClassUtils.hpp"
+#include "Vulk/Vertex.hpp"
 #include "Vulk/Window.hpp"
 
 namespace vulk {
@@ -128,12 +129,15 @@ private:
     void createGraphicsPipeline();
     void createFrameBuffers();
     void createCommandPool();
+    void createVertexBuffer();
     void createCommandBuffers();
     void createSyncObject();
 
     void chooseSwapSurfaceFormat();
     void chooseSwapPresentMode();
     void chooseSwapExtent(GLFWwindow* windowHandle);
+
+    [[nodiscard]] uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
 
     static bool verifyExtensionsSupport(const vk::PhysicalDevice& device);
 
@@ -176,9 +180,19 @@ private:
     std::vector<FrameSyncObjects> m_frameSyncObjects{};
     std::vector<vk::Fence> m_imagesInFlight{};
 
+    vk::Buffer m_vertexBuffer{};
+    vk::DeviceMemory m_vertexBufferMemory{};
+
+    // TODO: May be better to store in the FrameManager
     size_t m_currentFrame{};
 
+    static constexpr std::array s_vertices{Vertex{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+                                           Vertex{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+                                           Vertex{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
+
+    // TODO: May be better to store in the FrameManager
     static const size_t s_maxFramesInFlight;  // make it const until it is possible to change it, if ever...
+
     static std::unique_ptr<ContextVulkan> s_instance;
 };
 }  // namespace vulk

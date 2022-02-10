@@ -68,19 +68,19 @@ VULK_DEFINE_EXCEPTION(IOException, Exception)
 VULK_DEFINE_EXCEPTION(FileNotFoundException, IOException)
 VULK_DEFINE_EXCEPTION(PermissionDeniedException, IOException)
 
-VULK_DEFINE_EXCEPTION(ThirdPartyException, Exception)
+VULK_DEFINE_EXCEPTION(LibraryException, Exception)
 
-class GLFWException : public ThirdPartyException
+class GLFWException : public LibraryException
 {
 public:
-    explicit GLFWException(const std::string& message = getGLFWError()) : ThirdPartyException(message, "GLFWException")
+    explicit GLFWException(const std::string& message = getGLFWError()) : LibraryException(message, "GLFWException")
     {
     }
 
     static std::string getGLFWError() noexcept;
 };
 
-class VulkanException : public ThirdPartyException
+class VulkanException : public LibraryException
 {
 public:
     explicit VulkanException(vk::Result result);

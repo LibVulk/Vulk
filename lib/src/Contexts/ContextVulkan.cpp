@@ -29,7 +29,6 @@
 #include "Vulk/ScopedProfiler.hpp"
 #include "Vulk/Shader.hpp"
 #include "Vulk/Utils.hpp"
-#include "Vulk/Vertex.hpp"
 
 const size_t vulk::ContextVulkan::s_maxFramesInFlight{2};
 std::unique_ptr<vulk::ContextVulkan> vulk::ContextVulkan::s_instance{nullptr};
@@ -55,6 +54,7 @@ vulk::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle)
     createGraphicsPipeline();
     createFrameBuffers();
     createCommandPool();
+    createVertexBuffer();
     createCommandBuffers();
     createSyncObject();
 
@@ -89,6 +89,7 @@ vulk::ContextVulkan::~ContextVulkan()
             m_device.destroy(imageView);
 
         m_device.destroy(m_swapChain);
+        m_device.destroy(m_vertexBuffer);
     }
 
     m_instance.destroy(m_surface);
@@ -578,6 +579,26 @@ void vulk::ContextVulkan::createCommandPool()
     handleVulkanError(m_device.createCommandPool(&commandPoolCreateInfo, nullptr, &m_commandPool));
 }
 
+void vulk::ContextVulkan::createVertexBuffer()
+{
+    vk::BufferCreateInfo bufferInfo{};
+    bufferInfo.size = sizeof(decltype(s_vertices)::value_type) * s_vertices.size();
+    bufferInfo.usage = vk::BufferUsageFlagBits::eVertexBuffer;
+    bufferInfo.sharingMode = vk::SharingMode::eExclusive;
+
+    handleVulkanError(m_device.createBuffer(&bufferInfo, nullptr, &m_vertexBuffer));
+
+    vk::MemoryRequirements memoryRequirements{m_device.getBufferMemoryRequirements(m_vertexBuffer)};
+    vk::MemoryAllocateInfo allocateInfo{};
+    allocateInfo.allocationSize = memoryRequirements.size;
+    allocateInfo.memoryTypeIndex =
+      findMemoryType(memoryRequirements.memoryTypeBits,
+                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+
+    handleVulkanError(m_device.allocateMemory(&allocateInfo, nullptr, &m_vertexBufferMemory));
+    m_device.bindBufferMemory(m_vertexBuffer, m_vertexBufferMemory, 0);
+}
+
 void vulk::ContextVulkan::createCommandBuffers()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createCommandBuffers()");
@@ -740,6 +761,21 @@ vulk::ContextVulkan::findQueueFamilies(const vk::PhysicalDevice& physicalDevice)
     }
 
     return std::make_pair(std::move(queueFamilies), indices);
+}
+
+uint32_t vulk::ContextVulkan::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties)
+{
+    vk::PhysicalDeviceMemoryProperties memoryProperties{m_physicalDevice.getMemoryProperties()};
+
+    for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++)
+    {
+        if ((typeFilter & (1 << i)) && (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
+        {
+            return i;
+        }
+    }
+
+    throw VulkanException("Could not find a suitable memory type");
 }
 
 vulk::ContextVulkan::SwapChainSupportDetails
