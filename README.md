@@ -34,6 +34,7 @@ As said above, the lib is very *very* work in progress. It is not ready to be us
 - [ ] Parallel rendering
 
 ### Medium term
+- [ ] Instancing
 - [ ] Text and fonts
 - [ ] Networking
 - [ ] [Detach from conan #9](https://github.com/LibVulk/Vulk/issues/9)
