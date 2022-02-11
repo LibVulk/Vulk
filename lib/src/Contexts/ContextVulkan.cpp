@@ -775,7 +775,7 @@ vulk::ContextVulkan::findQueueFamilies(const vk::PhysicalDevice& physicalDevice)
     return std::make_pair(std::move(queueFamilies), indices);
 }
 
-uint32_t vulk::ContextVulkan::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties)
+uint32_t vulk::ContextVulkan::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) const
 {
     vk::PhysicalDeviceMemoryProperties memoryProperties{m_physicalDevice.getMemoryProperties()};
 

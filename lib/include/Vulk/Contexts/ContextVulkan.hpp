@@ -137,7 +137,7 @@ private:
     void chooseSwapPresentMode();
     void chooseSwapExtent(GLFWwindow* windowHandle);
 
-    [[nodiscard]] uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
+    [[nodiscard]] uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) const;
 
     static bool verifyExtensionsSupport(const vk::PhysicalDevice& device);
 
