@@ -63,12 +63,13 @@ private:
      * TODO: customizable
      */
     static constexpr std::array PRESENT_MODES_PREFERRED{
-      vk::PresentModeKHR::eMailbox, vk::PresentModeKHR::eFifo, vk::PresentModeKHR::eFifoRelaxed,
-      vk::PresentModeKHR::eImmediate,
+      vk::PresentModeKHR::eMailbox,      //
+      vk::PresentModeKHR::eFifo,         //
+      vk::PresentModeKHR::eFifoRelaxed,  //
+      vk::PresentModeKHR::eImmediate,    //
 
-      // TODO: Don't know what these do, will check later
-      // vk::PresentModeKHR::eSharedDemandRefresh,
-      // vk::PresentModeKHR::eSharedContinuousRefresh,
+      // vk::PresentModeKHR::eSharedDemandRefresh, //
+      // vk::PresentModeKHR::eSharedContinuousRefresh, //
     };
 
     struct QueueFamilyIndices
