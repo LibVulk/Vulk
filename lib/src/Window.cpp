@@ -96,6 +96,12 @@ bool vulk::Window::isOpen() const noexcept
     return !glfwWindowShouldClose(m_windowHandle);
 }
 
+void vulk::Window::setTitle(const char* newTitle) noexcept
+{
+    if (newTitle)
+        glfwSetWindowTitle(m_windowHandle, newTitle);
+}
+
 static void onKeyPressed(GLFWwindow* window, int, int scancode, int action, int)
 {
     auto keyboard = vulk::Keyboard::getKeyboard(window);

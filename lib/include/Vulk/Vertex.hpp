@@ -17,32 +17,18 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include <Vulk/Contexts/ContextVulkan.hpp>
-#include <Vulk/Window.hpp>
+#pragma once
 
-#include <iostream>
+#include <glm/glm.hpp>
+#include <vulkan/vulkan.hpp>
 
-int main()
+struct Vertex
 {
-    vulk::Window win{800, 600, "Vulkan window"};
+    glm::vec2 position{};
+    glm::vec3 color{};
 
-    win.getFrameManager().setOnSecondCallback([&win](const vulk::FrameManager& frameManager) {
-        constexpr const char* TitleFormat = "Vulkan window (%u fps)";
-        constexpr size_t BufferSize = 32;
+    using AttributeDescriptions = std::array<vk::VertexInputAttributeDescription, 2>;
 
-        char buffer[BufferSize]{};
-
-        std::snprintf(buffer, BufferSize, TitleFormat, frameManager.getFPS());
-
-        win.setTitle(buffer);
-    });
-
-    while (win.isOpen())
-    {
-        win.pollEvents();
-
-        win.display();
-    }
-
-    return 0;
-}
+    static vk::VertexInputBindingDescription getBindingDescription() noexcept;
+    static AttributeDescriptions getAttributeDescriptions() noexcept;
+};

@@ -36,8 +36,8 @@ struct Mat3
     };
 
     constexpr Mat3() = default;
-    constexpr Mat3(T value) : m{std::array<T, 9>{value, 0.0, 0.0, 0.0, value, 0.0, 0.0, 0.0, value}} {}
-    constexpr Mat3(const std::array<T, 9> mat) : m{mat} {}
+    constexpr explicit Mat3(T value) : m{std::array<T, 9>{value, 0.0, 0.0, 0.0, value, 0.0, 0.0, 0.0, value}} {}
+    constexpr explicit Mat3(const std::array<T, 9> mat) : m{mat} {}
     constexpr Mat3(T a1, T a2, T a3, T a4, T a5, T a6, T a7, T a8, T a9)
         : m{std::array<T, 9>{a1, a2, a3, a4, a5, a6, a7, a8, a9}}
     {

@@ -52,16 +52,21 @@ void vulk::FrameManager::update() noexcept
 }
 
 // TODO: There is probably a more optimal way of doing this
+vulk::FrameManager::FramerateStringBuffer vulk::FrameManager::getFramerateCString() const noexcept
+{
+    FramerateStringBuffer buffer{};
+
+    std::snprintf(buffer.data(), buffer.size(), "%u fps", m_framerate);
+
+    return buffer;
+}
+
 std::string vulk::FrameManager::getFramerateString() const noexcept
 {
-    static constexpr size_t BufferSize = 16;
-    char buffer[BufferSize]{};
-
-    snprintf(buffer, BufferSize, "%u fps", m_framerate);
-    return std::string{buffer};
+    return std::string{getFramerateCString().data()};
 }
 
 std::ostream& operator<<(std::ostream& os, const vulk::FrameManager& frameManager)
 {
-    return os << frameManager.getFramerate() << " fps";
+    return os << frameManager.getFPS() << " fps";
 }

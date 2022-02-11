@@ -44,6 +44,14 @@ public:
     void pollEvents();
     void close() noexcept;
 
+    /**
+     * @brief Changes the title of the window.
+     *
+     * @param newTitle The new window title, ignored if null.
+     * @note This will be updated on the next pollEvents() call.
+     */
+    void setTitle(const char* newTitle) noexcept;
+
     [[nodiscard]] bool isOpen() const noexcept;
     [[nodiscard]] FrameManager& getFrameManager() noexcept { return m_frameManager; }
     [[nodiscard]] const FrameManager& getFrameManager() const noexcept { return m_frameManager; }

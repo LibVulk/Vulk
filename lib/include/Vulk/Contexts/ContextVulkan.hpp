@@ -26,6 +26,7 @@
 #include <optional>
 
 #include "Vulk/ClassUtils.hpp"
+#include "Vulk/Vertex.hpp"
 #include "Vulk/Window.hpp"
 
 namespace vulk {
@@ -62,12 +63,13 @@ private:
      * TODO: customizable
      */
     static constexpr std::array PRESENT_MODES_PREFERRED{
-      vk::PresentModeKHR::eMailbox, vk::PresentModeKHR::eFifo, vk::PresentModeKHR::eFifoRelaxed,
-      vk::PresentModeKHR::eImmediate,
+      vk::PresentModeKHR::eMailbox,      //
+      vk::PresentModeKHR::eFifo,         //
+      vk::PresentModeKHR::eFifoRelaxed,  //
+      vk::PresentModeKHR::eImmediate,    //
 
-      // TODO: Don't know what these do, will check later
-      // vk::PresentModeKHR::eSharedDemandRefresh,
-      // vk::PresentModeKHR::eSharedContinuousRefresh,
+      // vk::PresentModeKHR::eSharedDemandRefresh, //
+      // vk::PresentModeKHR::eSharedContinuousRefresh, //
     };
 
     struct QueueFamilyIndices
@@ -128,12 +130,20 @@ private:
     void createGraphicsPipeline();
     void createFrameBuffers();
     void createCommandPool();
+    void createVertexBuffer();
+    void createIndexBuffer();
     void createCommandBuffers();
     void createSyncObject();
+
+    void createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
+                      vk::Buffer& outBuffer, vk::DeviceMemory& outDeviceMemory);
+    void copyBuffer(const vk::Buffer& sourceBuffer, vk::Buffer& destinationBuffer, vk::DeviceSize size);
 
     void chooseSwapSurfaceFormat();
     void chooseSwapPresentMode();
     void chooseSwapExtent(GLFWwindow* windowHandle);
+
+    [[nodiscard]] uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) const;
 
     static bool verifyExtensionsSupport(const vk::PhysicalDevice& device);
 
@@ -176,9 +186,37 @@ private:
     std::vector<FrameSyncObjects> m_frameSyncObjects{};
     std::vector<vk::Fence> m_imagesInFlight{};
 
-    size_t m_currentFrame{};
+    vk::Buffer m_vertexBuffer{};
+    vk::DeviceMemory m_vertexBufferMemory{};
+    vk::Buffer m_indexBuffer{};
+    vk::DeviceMemory m_indexBufferMemory{};
 
-    static const size_t s_maxFramesInFlight;  // make it const until it is possible to change it, if ever...
+    // TODO: May be better to store in the FrameManager
+    size_t m_currentFrame{};
+    static const size_t s_maxFramesInFlight;
+    //
+
+    template<typename T>
+    static constexpr vk::IndexType getIndexType()
+    {
+        // could be a concept with C++20
+        static_assert(std::is_same_v<T, uint16_t> || std::is_same_v<T, uint32_t>);
+
+        if (std::is_same_v<T, uint16_t>)
+            return vk::IndexType::eUint16;
+        if (std::is_same_v<T, uint32_t>)
+            return vk::IndexType::eUint32;
+
+        assert(0);
+        return vk::IndexType::eNoneKHR;
+    }
+
+    static constexpr std::array s_vertices{Vertex{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},  //
+                                           Vertex{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},   //
+                                           Vertex{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},    //
+                                           Vertex{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}};
+    static constexpr std::array<uint16_t, 6> s_indices{0, 1, 2, 2, 3, 0};
+
     static std::unique_ptr<ContextVulkan> s_instance;
 };
 }  // namespace vulk

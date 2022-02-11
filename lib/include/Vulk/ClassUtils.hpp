@@ -50,4 +50,4 @@
  * @tparam T Type you are looking for, use decltype of the variable to detect it.
  */
 template<typename T>
-class TypeChecker;
+class [[maybe_unused]] TypeChecker;

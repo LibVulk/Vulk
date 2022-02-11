@@ -54,6 +54,8 @@ vulk::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle)
     createGraphicsPipeline();
     createFrameBuffers();
     createCommandPool();
+    createVertexBuffer();
+    createIndexBuffer();
     createCommandBuffers();
     createSyncObject();
 
@@ -88,6 +90,11 @@ vulk::ContextVulkan::~ContextVulkan()
             m_device.destroy(imageView);
 
         m_device.destroy(m_swapChain);
+
+        m_device.destroy(m_indexBuffer);
+        m_device.freeMemory(m_indexBufferMemory);
+        m_device.destroy(m_vertexBuffer);
+        m_device.freeMemory(m_vertexBufferMemory);
     }
 
     m_instance.destroy(m_surface);
@@ -97,6 +104,8 @@ vulk::ContextVulkan::~ContextVulkan()
 
 void vulk::ContextVulkan::createInstance(GLFWwindow* windowHandle)
 {
+    assert(windowHandle);
+
     if (s_instance)
         return;
 
@@ -437,9 +446,14 @@ void vulk::ContextVulkan::createGraphicsPipeline()
     vk::PipelineShaderStageCreateInfo shaderStages[] = {vert.getShaderStageCreateInfo(),
                                                         frag.getShaderStageCreateInfo()};
 
+    auto bindingDescription = Vertex::getBindingDescription();
+    auto attributeDescriptions = Vertex::getAttributeDescriptions();
+
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo{};
-    vertexInputInfo.vertexBindingDescriptionCount = 0;
-    vertexInputInfo.vertexAttributeDescriptionCount = 0;
+    vertexInputInfo.vertexBindingDescriptionCount = 1;
+    vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+    vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+    vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly{};
     inputAssembly.topology = vk::PrimitiveTopology::eTriangleList;
@@ -572,6 +586,60 @@ void vulk::ContextVulkan::createCommandPool()
     handleVulkanError(m_device.createCommandPool(&commandPoolCreateInfo, nullptr, &m_commandPool));
 }
 
+void vulk::ContextVulkan::createVertexBuffer()
+{
+    static constexpr vk::DeviceSize BufferSize = sizeof(decltype(s_vertices)::value_type) * s_vertices.size();
+
+    vk::Buffer stagingBuffer;
+    vk::DeviceMemory stagingBufferMemory;
+
+    createBuffer(BufferSize, vk::BufferUsageFlagBits::eTransferSrc,
+                 vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingBuffer,
+                 stagingBufferMemory);
+
+    void* data;
+    handleVulkanError(m_device.mapMemory(stagingBufferMemory, 0, BufferSize, {}, &data));
+    std::memcpy(data, s_vertices.data(), BufferSize);
+    m_device.unmapMemory(stagingBufferMemory);
+
+    createBuffer(BufferSize, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer,
+                 vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_vertexBuffer,
+                 m_vertexBufferMemory);
+
+    copyBuffer(stagingBuffer, m_vertexBuffer, BufferSize);
+
+    // TODO: vk::raii
+    m_device.destroy(stagingBuffer);
+    m_device.freeMemory(stagingBufferMemory);
+}
+
+void vulk::ContextVulkan::createIndexBuffer()
+{
+    static constexpr vk::DeviceSize BufferSize = sizeof(decltype(s_indices)::value_type) * s_indices.size();
+
+    vk::Buffer stagingBuffer;
+    vk::DeviceMemory stagingBufferMemory;
+
+    createBuffer(BufferSize, vk::BufferUsageFlagBits::eTransferSrc,
+                 vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingBuffer,
+                 stagingBufferMemory);
+
+    void* data;
+    handleVulkanError(m_device.mapMemory(stagingBufferMemory, 0, BufferSize, {}, &data));
+    std::memcpy(data, s_indices.data(), BufferSize);
+    m_device.unmapMemory(stagingBufferMemory);
+
+    createBuffer(BufferSize, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer,
+                 vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_indexBuffer,
+                 m_indexBufferMemory);
+
+    copyBuffer(stagingBuffer, m_indexBuffer, BufferSize);
+
+    // TODO: vk::raii
+    m_device.destroy(stagingBuffer);
+    m_device.freeMemory(stagingBufferMemory);
+}
+
 void vulk::ContextVulkan::createCommandBuffers()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createCommandBuffers()");
@@ -604,9 +672,16 @@ void vulk::ContextVulkan::createCommandBuffers()
         renderPassBeginInfo.clearValueCount = 1;
         renderPassBeginInfo.pClearValues = &clearValue;
 
+        std::array vertexBuffers{m_vertexBuffer};
+        std::array offsets{vk::DeviceSize{0}};
+        static_assert(vertexBuffers.size() == offsets.size());
+
         m_commandBuffers[i].beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
         m_commandBuffers[i].bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline);
-        m_commandBuffers[i].draw(3, 1, 0, 0);
+        m_commandBuffers[i].bindVertexBuffers(0, static_cast<uint32_t>(vertexBuffers.size()), vertexBuffers.data(),
+                                              offsets.data());
+        m_commandBuffers[i].bindIndexBuffer(m_indexBuffer, 0, getIndexType<decltype(s_indices)::value_type>());
+        m_commandBuffers[i].drawIndexed(static_cast<uint32_t>(s_indices.size()), 1, 0, 0, 0);
         m_commandBuffers[i].endRenderPass();
         m_commandBuffers[i].end();
     }
@@ -688,6 +763,62 @@ void vulk::ContextVulkan::chooseSwapExtent(GLFWwindow* windowHandle)
     }
 }
 
+void vulk::ContextVulkan::createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage,
+                                       vk::MemoryPropertyFlags properties, vk::Buffer& outBuffer,
+                                       vk::DeviceMemory& outDeviceMemory)
+{
+    VULK_SCOPED_PROFILER("vulk::ContextVulkan::createBuffer()");
+
+    vk::BufferCreateInfo bufferInfo{};
+    bufferInfo.size = size;
+    bufferInfo.usage = usage;
+    bufferInfo.sharingMode = vk::SharingMode::eExclusive;
+
+    handleVulkanError(m_device.createBuffer(&bufferInfo, nullptr, &outBuffer));
+
+    vk::MemoryRequirements memoryRequirements{m_device.getBufferMemoryRequirements(outBuffer)};
+    vk::MemoryAllocateInfo allocateInfo{};
+    allocateInfo.allocationSize = memoryRequirements.size;
+    allocateInfo.memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits, properties);
+
+    handleVulkanError(m_device.allocateMemory(&allocateInfo, nullptr, &outDeviceMemory));
+    m_device.bindBufferMemory(outBuffer, outDeviceMemory, 0);
+}
+
+void vulk::ContextVulkan::copyBuffer(const vk::Buffer& sourceBuffer, vk::Buffer& destinationBuffer, vk::DeviceSize size)
+{
+    VULK_SCOPED_PROFILER("vulk::ContextVulkan::copyBuffer()");
+
+    vk::CommandBufferAllocateInfo allocateInfo{};
+    allocateInfo.level = vk::CommandBufferLevel::ePrimary;
+    allocateInfo.commandPool = m_commandPool;
+    allocateInfo.commandBufferCount = 1;
+
+    vk::CommandBuffer commandBuffer;
+    handleVulkanError(m_device.allocateCommandBuffers(&allocateInfo, &commandBuffer));
+
+    vk::CommandBufferBeginInfo beginInfo{};
+    beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+
+    handleVulkanError(commandBuffer.begin(&beginInfo));
+
+    vk::BufferCopy copyRegion{};
+    copyRegion.size = size;
+
+    commandBuffer.copyBuffer(sourceBuffer, destinationBuffer, 1, &copyRegion);
+    commandBuffer.end();
+
+    vk::SubmitInfo submitInfo{};
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
+
+    handleVulkanError(m_graphicsQueue.submit(1, &submitInfo, nullptr));
+    m_graphicsQueue.waitIdle();
+
+    // TODO: vk::raii
+    m_device.freeCommandBuffers(m_commandPool, 1, &commandBuffer);
+}
+
 bool vulk::ContextVulkan::verifyExtensionsSupport(const vk::PhysicalDevice& device)
 {
     VULK_SCOPED_PROFILER("ContextVulkan::verifyExtensionsSupport()");
@@ -736,6 +867,21 @@ vulk::ContextVulkan::findQueueFamilies(const vk::PhysicalDevice& physicalDevice)
     return std::make_pair(std::move(queueFamilies), indices);
 }
 
+uint32_t vulk::ContextVulkan::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) const
+{
+    vk::PhysicalDeviceMemoryProperties memoryProperties{m_physicalDevice.getMemoryProperties()};
+
+    for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++)
+    {
+        if ((typeFilter & (1 << i)) && (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
+        {
+            return i;
+        }
+    }
+
+    throw VulkanException("Could not find a suitable memory type");
+}
+
 vulk::ContextVulkan::SwapChainSupportDetails
 vulk::ContextVulkan::querySwapChainSupport(const vk::PhysicalDevice& device) const noexcept
 {
@@ -745,7 +891,6 @@ vulk::ContextVulkan::querySwapChainSupport(const vk::PhysicalDevice& device) con
 
     return details;
 }
-
 vulk::ContextVulkan& vulk::ContextVulkan::getInstance()
 {
     assert(s_instance);

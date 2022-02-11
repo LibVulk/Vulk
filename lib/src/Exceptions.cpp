@@ -22,16 +22,15 @@
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.hpp>
 
-vulk::VulkanException::VulkanException(vk::Result result)
-    : ThirdPartyException{vk::to_string(result), "VulkanException"}
+vulk::VulkanException::VulkanException(vk::Result result) : LibraryException{vk::to_string(result), "VulkanException"}
 {
 }
 
-vulk::VulkanException::VulkanException(const char* what) : ThirdPartyException{what, "VulkanException"}
+vulk::VulkanException::VulkanException(const char* what) : LibraryException{what, "VulkanException"}
 {
 }
 
-vulk::VulkanException::VulkanException(const std::string& what) : ThirdPartyException{what, "VulkanException"}
+vulk::VulkanException::VulkanException(const std::string& what) : LibraryException{what, "VulkanException"}
 {
 }
 
