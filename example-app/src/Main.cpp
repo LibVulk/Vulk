@@ -27,7 +27,7 @@ int main()
     vulk::Window win{800, 600, "Vulkan window"};
 
     win.getFrameManager().setOnSecondCallback([&win](const vulk::FrameManager& frameManager) {
-        constexpr const char* TitleFormat = "VulkanWindow (%u fps)";
+        constexpr const char* TitleFormat = "Vulkan window (%u fps)";
         constexpr size_t BufferSize = 32;
 
         char buffer[BufferSize]{};

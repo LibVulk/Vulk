@@ -131,6 +131,7 @@ private:
     void createFrameBuffers();
     void createCommandPool();
     void createVertexBuffer();
+    void createIndexBuffer();
     void createCommandBuffers();
     void createSyncObject();
 
@@ -187,16 +188,34 @@ private:
 
     vk::Buffer m_vertexBuffer{};
     vk::DeviceMemory m_vertexBufferMemory{};
+    vk::Buffer m_indexBuffer{};
+    vk::DeviceMemory m_indexBufferMemory{};
 
     // TODO: May be better to store in the FrameManager
     size_t m_currentFrame{};
+    static const size_t s_maxFramesInFlight;
+    //
 
-    static constexpr std::array s_vertices{Vertex{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-                                           Vertex{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-                                           Vertex{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
+    template<typename T>
+    static constexpr vk::IndexType getIndexType()
+    {
+        // could be a concept with C++20
+        static_assert(std::is_same_v<T, uint16_t> || std::is_same_v<T, uint32_t>);
 
-    // TODO: May be better to store in the FrameManager
-    static const size_t s_maxFramesInFlight;  // make it const until it is possible to change it, if ever...
+        if (std::is_same_v<T, uint16_t>)
+            return vk::IndexType::eUint16;
+        if (std::is_same_v<T, uint32_t>)
+            return vk::IndexType::eUint32;
+
+        assert(0);
+        return vk::IndexType::eNoneKHR;
+    }
+
+    static constexpr std::array s_vertices{Vertex{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},  //
+                                           Vertex{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},   //
+                                           Vertex{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},    //
+                                           Vertex{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}};
+    static constexpr std::array<uint16_t, 6> s_indices{0, 1, 2, 2, 3, 0};
 
     static std::unique_ptr<ContextVulkan> s_instance;
 };

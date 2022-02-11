@@ -55,6 +55,7 @@ vulk::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle)
     createFrameBuffers();
     createCommandPool();
     createVertexBuffer();
+    createIndexBuffer();
     createCommandBuffers();
     createSyncObject();
 
@@ -89,6 +90,9 @@ vulk::ContextVulkan::~ContextVulkan()
             m_device.destroy(imageView);
 
         m_device.destroy(m_swapChain);
+
+        m_device.destroy(m_indexBuffer);
+        m_device.freeMemory(m_indexBufferMemory);
         m_device.destroy(m_vertexBuffer);
         m_device.freeMemory(m_vertexBufferMemory);
     }
@@ -100,6 +104,8 @@ vulk::ContextVulkan::~ContextVulkan()
 
 void vulk::ContextVulkan::createInstance(GLFWwindow* windowHandle)
 {
+    assert(windowHandle);
+
     if (s_instance)
         return;
 
@@ -607,6 +613,33 @@ void vulk::ContextVulkan::createVertexBuffer()
     m_device.freeMemory(stagingBufferMemory);
 }
 
+void vulk::ContextVulkan::createIndexBuffer()
+{
+    static constexpr vk::DeviceSize BufferSize = sizeof(decltype(s_indices)::value_type) * s_indices.size();
+
+    vk::Buffer stagingBuffer;
+    vk::DeviceMemory stagingBufferMemory;
+
+    createBuffer(BufferSize, vk::BufferUsageFlagBits::eTransferSrc,
+                 vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingBuffer,
+                 stagingBufferMemory);
+
+    void* data;
+    handleVulkanError(m_device.mapMemory(stagingBufferMemory, 0, BufferSize, {}, &data));
+    std::memcpy(data, s_indices.data(), BufferSize);
+    m_device.unmapMemory(stagingBufferMemory);
+
+    createBuffer(BufferSize, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer,
+                 vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_indexBuffer,
+                 m_indexBufferMemory);
+
+    copyBuffer(stagingBuffer, m_indexBuffer, BufferSize);
+
+    // TODO: vk::raii
+    m_device.destroy(stagingBuffer);
+    m_device.freeMemory(stagingBufferMemory);
+}
+
 void vulk::ContextVulkan::createCommandBuffers()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createCommandBuffers()");
@@ -647,7 +680,8 @@ void vulk::ContextVulkan::createCommandBuffers()
         m_commandBuffers[i].bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline);
         m_commandBuffers[i].bindVertexBuffers(0, static_cast<uint32_t>(vertexBuffers.size()), vertexBuffers.data(),
                                               offsets.data());
-        m_commandBuffers[i].draw(static_cast<uint32_t>(s_vertices.size()), 1, 0, 0);
+        m_commandBuffers[i].bindIndexBuffer(m_indexBuffer, 0, getIndexType<decltype(s_indices)::value_type>());
+        m_commandBuffers[i].drawIndexed(static_cast<uint32_t>(s_indices.size()), 1, 0, 0, 0);
         m_commandBuffers[i].endRenderPass();
         m_commandBuffers[i].end();
     }
