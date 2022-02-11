@@ -597,8 +597,8 @@ void vulk::ContextVulkan::createVertexBuffer()
     m_device.unmapMemory(stagingBufferMemory);
 
     createBuffer(BufferSize, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer,
-                 vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingBuffer,
-                 stagingBufferMemory);
+                 vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_vertexBuffer,
+                 m_vertexBufferMemory);
 
     copyBuffer(stagingBuffer, m_vertexBuffer, BufferSize);
 
