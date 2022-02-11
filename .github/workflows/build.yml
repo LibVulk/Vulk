@@ -31,7 +31,6 @@ jobs:
       matrix:
         os: [ ubuntu-20.04, windows-2019 ]
         mode: [ "Debug", "Release" ]
-        warn: [ "ON", "OFF" ]
         include:
           - os: ubuntu-20.04
             cxx-override: CC=gcc-10 CXX=g++-10
@@ -75,7 +74,7 @@ jobs:
           ${{ matrix.cxx-override }} \
           cmake \
             -DCMAKE_BUILD_TYPE=${{ matrix.mode }} \
-            -DVULK_WARNINGS_AS_ERRORS=${{ matrix.warn }} \
+            -DVULK_WARNINGS_AS_ERRORS=ON \
             -DVULK_ENABLE_PCH=OFF \
             ..
 
