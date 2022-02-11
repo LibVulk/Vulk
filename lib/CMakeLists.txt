@@ -17,6 +17,8 @@ add_library(
         src/Keyboard.cpp include/Vulk/Keyboard.hpp
         src/Mouse.cpp include/Vulk/Mouse.hpp
         src/Objects.cpp include/Vulk/Objects.hpp
+        src/Graphics/Drawable.cpp include/Vulk/Graphics/Drawable.hpp
+        src/Graphics/Shape.cpp include/Vulk/Graphics/Shape.hpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE include)
