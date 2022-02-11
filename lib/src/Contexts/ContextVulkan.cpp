@@ -90,6 +90,7 @@ vulk::ContextVulkan::~ContextVulkan()
 
         m_device.destroy(m_swapChain);
         m_device.destroy(m_vertexBuffer);
+        m_device.freeMemory(m_vertexBufferMemory);
     }
 
     m_instance.destroy(m_surface);
@@ -597,6 +598,11 @@ void vulk::ContextVulkan::createVertexBuffer()
 
     handleVulkanError(m_device.allocateMemory(&allocateInfo, nullptr, &m_vertexBufferMemory));
     m_device.bindBufferMemory(m_vertexBuffer, m_vertexBufferMemory, 0);
+
+    void* data;
+    handleVulkanError(m_device.mapMemory(m_vertexBufferMemory, 0, bufferInfo.size, {}, &data));
+    std::memcpy(data, s_vertices.data(), static_cast<size_t>(bufferInfo.size));
+    m_device.unmapMemory(m_vertexBufferMemory);
 }
 
 void vulk::ContextVulkan::createCommandBuffers()
@@ -631,9 +637,15 @@ void vulk::ContextVulkan::createCommandBuffers()
         renderPassBeginInfo.clearValueCount = 1;
         renderPassBeginInfo.pClearValues = &clearValue;
 
+        std::array vertexBuffers{m_vertexBuffer};
+        std::array offsets{vk::DeviceSize{0}};
+        static_assert(vertexBuffers.size() == offsets.size());
+
         m_commandBuffers[i].beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
         m_commandBuffers[i].bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline);
-        m_commandBuffers[i].draw(3, 1, 0, 0);
+        m_commandBuffers[i].bindVertexBuffers(0, static_cast<uint32_t>(vertexBuffers.size()), vertexBuffers.data(),
+                                              offsets.data());
+        m_commandBuffers[i].draw(static_cast<uint32_t>(s_vertices.size()), 1, 0, 0);
         m_commandBuffers[i].endRenderPass();
         m_commandBuffers[i].end();
     }
