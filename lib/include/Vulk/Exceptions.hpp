@@ -103,7 +103,7 @@ inline vk::Result handleVulkanError(VkResult vkRes)
 }
 
 template<typename T>
-T& handleVulkanError(vk::ResultValue<T>& res)
+inline T& handleVulkanError(vk::ResultValue<T>& res)
 {
     if (res.result != vk::Result::eSuccess)
         throw VulkanException(res.result);
@@ -111,7 +111,7 @@ T& handleVulkanError(vk::ResultValue<T>& res)
 }
 
 template<typename T>
-const T& handleVulkanError(const vk::ResultValue<T>& res)
+inline const T& handleVulkanError(const vk::ResultValue<T>& res)
 {
     if (res.result != vk::Result::eSuccess)
         throw VulkanException(res.result);

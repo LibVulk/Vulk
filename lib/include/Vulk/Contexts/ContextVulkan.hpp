@@ -133,6 +133,10 @@ private:
     void createCommandBuffers();
     void createSyncObject();
 
+    void createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
+                      vk::Buffer& outBuffer, vk::DeviceMemory& outDeviceMemory);
+    void copyBuffer(const vk::Buffer& sourceBuffer, vk::Buffer& destinationBuffer, vk::DeviceSize size);
+
     void chooseSwapSurfaceFormat();
     void chooseSwapPresentMode();
     void chooseSwapExtent(GLFWwindow* windowHandle);

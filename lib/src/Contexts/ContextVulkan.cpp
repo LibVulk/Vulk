@@ -582,27 +582,29 @@ void vulk::ContextVulkan::createCommandPool()
 
 void vulk::ContextVulkan::createVertexBuffer()
 {
-    vk::BufferCreateInfo bufferInfo{};
-    bufferInfo.size = sizeof(decltype(s_vertices)::value_type) * s_vertices.size();
-    bufferInfo.usage = vk::BufferUsageFlagBits::eVertexBuffer;
-    bufferInfo.sharingMode = vk::SharingMode::eExclusive;
+    static constexpr vk::DeviceSize BufferSize = sizeof(decltype(s_vertices)::value_type) * s_vertices.size();
 
-    handleVulkanError(m_device.createBuffer(&bufferInfo, nullptr, &m_vertexBuffer));
+    vk::Buffer stagingBuffer;
+    vk::DeviceMemory stagingBufferMemory;
 
-    vk::MemoryRequirements memoryRequirements{m_device.getBufferMemoryRequirements(m_vertexBuffer)};
-    vk::MemoryAllocateInfo allocateInfo{};
-    allocateInfo.allocationSize = memoryRequirements.size;
-    allocateInfo.memoryTypeIndex =
-      findMemoryType(memoryRequirements.memoryTypeBits,
-                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
-
-    handleVulkanError(m_device.allocateMemory(&allocateInfo, nullptr, &m_vertexBufferMemory));
-    m_device.bindBufferMemory(m_vertexBuffer, m_vertexBufferMemory, 0);
+    createBuffer(BufferSize, vk::BufferUsageFlagBits::eTransferSrc,
+                 vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingBuffer,
+                 stagingBufferMemory);
 
     void* data;
-    handleVulkanError(m_device.mapMemory(m_vertexBufferMemory, 0, bufferInfo.size, {}, &data));
-    std::memcpy(data, s_vertices.data(), bufferInfo.size);
-    m_device.unmapMemory(m_vertexBufferMemory);
+    handleVulkanError(m_device.mapMemory(stagingBufferMemory, 0, BufferSize, {}, &data));
+    std::memcpy(data, s_vertices.data(), BufferSize);
+    m_device.unmapMemory(stagingBufferMemory);
+
+    createBuffer(BufferSize, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer,
+                 vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingBuffer,
+                 stagingBufferMemory);
+
+    copyBuffer(stagingBuffer, m_vertexBuffer, BufferSize);
+
+    // TODO: vk::raii
+    m_device.destroy(stagingBuffer);
+    m_device.freeMemory(stagingBufferMemory);
 }
 
 void vulk::ContextVulkan::createCommandBuffers()
@@ -727,6 +729,62 @@ void vulk::ContextVulkan::chooseSwapExtent(GLFWwindow* windowHandle)
     }
 }
 
+void vulk::ContextVulkan::createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage,
+                                       vk::MemoryPropertyFlags properties, vk::Buffer& outBuffer,
+                                       vk::DeviceMemory& outDeviceMemory)
+{
+    VULK_SCOPED_PROFILER("vulk::ContextVulkan::createBuffer()");
+
+    vk::BufferCreateInfo bufferInfo{};
+    bufferInfo.size = size;
+    bufferInfo.usage = usage;
+    bufferInfo.sharingMode = vk::SharingMode::eExclusive;
+
+    handleVulkanError(m_device.createBuffer(&bufferInfo, nullptr, &outBuffer));
+
+    vk::MemoryRequirements memoryRequirements{m_device.getBufferMemoryRequirements(outBuffer)};
+    vk::MemoryAllocateInfo allocateInfo{};
+    allocateInfo.allocationSize = memoryRequirements.size;
+    allocateInfo.memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits, properties);
+
+    handleVulkanError(m_device.allocateMemory(&allocateInfo, nullptr, &outDeviceMemory));
+    m_device.bindBufferMemory(outBuffer, outDeviceMemory, 0);
+}
+
+void vulk::ContextVulkan::copyBuffer(const vk::Buffer& sourceBuffer, vk::Buffer& destinationBuffer, vk::DeviceSize size)
+{
+    VULK_SCOPED_PROFILER("vulk::ContextVulkan::copyBuffer()");
+
+    vk::CommandBufferAllocateInfo allocateInfo{};
+    allocateInfo.level = vk::CommandBufferLevel::ePrimary;
+    allocateInfo.commandPool = m_commandPool;
+    allocateInfo.commandBufferCount = 1;
+
+    vk::CommandBuffer commandBuffer;
+    handleVulkanError(m_device.allocateCommandBuffers(&allocateInfo, &commandBuffer));
+
+    vk::CommandBufferBeginInfo beginInfo{};
+    beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+
+    handleVulkanError(commandBuffer.begin(&beginInfo));
+
+    vk::BufferCopy copyRegion{};
+    copyRegion.size = size;
+
+    commandBuffer.copyBuffer(sourceBuffer, destinationBuffer, 1, &copyRegion);
+    commandBuffer.end();
+
+    vk::SubmitInfo submitInfo{};
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
+
+    handleVulkanError(m_graphicsQueue.submit(1, &submitInfo, nullptr));
+    m_graphicsQueue.waitIdle();
+
+    // TODO: vk::raii
+    m_device.freeCommandBuffers(m_commandPool, 1, &commandBuffer);
+}
+
 bool vulk::ContextVulkan::verifyExtensionsSupport(const vk::PhysicalDevice& device)
 {
     VULK_SCOPED_PROFILER("ContextVulkan::verifyExtensionsSupport()");
@@ -799,7 +857,6 @@ vulk::ContextVulkan::querySwapChainSupport(const vk::PhysicalDevice& device) con
 
     return details;
 }
-
 vulk::ContextVulkan& vulk::ContextVulkan::getInstance()
 {
     assert(s_instance);

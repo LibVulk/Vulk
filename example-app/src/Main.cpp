@@ -26,12 +26,16 @@ int main()
 {
     vulk::Window win{800, 600, "Vulkan window"};
 
-    win.getFrameManager().setOnSecondCallback(
-      [](const vulk::FrameManager& frameManager) { std::cout << frameManager << std::endl; });
+    win.getFrameManager().setOnSecondCallback([&win](const vulk::FrameManager& frameManager) {
+        constexpr const char* TitleFormat = "VulkanWindow (%u fps)";
+        constexpr size_t BufferSize = 32;
 
-#if VULK_DEBUG
-    std::cout << "sizeof(vulk::ContextVulkan)=" << sizeof(vulk::ContextVulkan) << std::endl;
-#endif
+        char buffer[BufferSize]{};
+
+        std::snprintf(buffer, BufferSize, TitleFormat, frameManager.getFPS());
+
+        win.setTitle(buffer);
+    });
 
     while (win.isOpen())
     {

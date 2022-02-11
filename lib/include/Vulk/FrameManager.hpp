@@ -31,6 +31,7 @@ class FrameManager final
 {
 public:
     using OnSecondCallback = std::function<void(const FrameManager& frameManager)>;
+    using FramerateStringBuffer = std::array<char, 16>;
 
     FrameManager();
 
@@ -39,7 +40,8 @@ public:
     void setOnSecondCallback(const OnSecondCallback& func) noexcept { m_onSecondCallback = func; }
 
     [[nodiscard]] auto getDeltaTime() const noexcept { return m_deltaTime; }
-    [[nodiscard]] auto getFramerate() const noexcept { return m_framerate; }
+    [[nodiscard]] auto getFPS() const noexcept { return m_framerate; }
+    [[nodiscard]] FramerateStringBuffer getFramerateCString() const noexcept;
     [[nodiscard]] std::string getFramerateString() const noexcept;
 
 private:
