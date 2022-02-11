@@ -601,7 +601,7 @@ void vulk::ContextVulkan::createVertexBuffer()
 
     void* data;
     handleVulkanError(m_device.mapMemory(m_vertexBufferMemory, 0, bufferInfo.size, {}, &data));
-    std::memcpy(data, s_vertices.data(), static_cast<size_t>(bufferInfo.size));
+    std::memcpy(data, s_vertices.data(), bufferInfo.size);
     m_device.unmapMemory(m_vertexBufferMemory);
 }
 
