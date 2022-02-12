@@ -159,6 +159,7 @@ private:
 
     // TODO: cache image count used in framebuffers, swap-chain, etc
 
+    // TODO: the ContextVulkan should not contain the raw window handle, maybe a Window reference though
     GLFWwindow* m_windowHandle;
 
     vk::Instance m_instance{};

@@ -156,8 +156,6 @@ void vulk::ContextVulkan::draw()
 {
     static constexpr auto NO_TIMEOUT = std::numeric_limits<uint64_t>::max();
 
-    // Wait until the frame is released
-
     const auto* fence = &m_frameSyncObjects[m_currentFrame].fence;
 
     handleVulkanError(m_device.waitForFences(1, fence, true, NO_TIMEOUT));
@@ -373,6 +371,20 @@ void vulk::ContextVulkan::createLogicalDevice()
 
 void vulk::ContextVulkan::recreateSwapChain()
 {
+    {
+        int width, height;
+
+        glfwGetWindowSize(m_windowHandle, &width, &height);
+
+        // App is minimized or has an invalid size, ignore and wait for the next resize
+        // TODO: This will pause execution, needs to be customizable, and probably off by default
+        while (width == 0 || height == 0)
+        {
+            glfwWaitEvents();
+            glfwGetWindowSize(m_windowHandle, &width, &height);
+        }
+    }
+
     m_device.waitIdle();
 
     cleanupSwapchainSubObjects();
