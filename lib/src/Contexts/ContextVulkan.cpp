@@ -110,9 +110,9 @@ void vulk::ContextVulkan::cleanupSwapchain(vk::SwapchainKHR& swapchain)
     if (!m_device)
         return;
 
-    for (auto& framebuffer : m_swapChainFrameBuffers)
+    for (auto& framebuffer : m_swapchainFrameBuffers)
         m_device.destroy(framebuffer);
-    m_swapChainFrameBuffers.clear();
+    m_swapchainFrameBuffers.clear();
 
     m_device.freeCommandBuffers(m_commandPool, static_cast<uint32_t>(m_commandBuffers.size()), m_commandBuffers.data());
 
@@ -136,9 +136,9 @@ void vulk::ContextVulkan::cleanupSwapchainSubObjects()
     m_device.destroy(m_pipelineLayout);
     m_device.destroy(m_renderPass);
 
-    for (auto& imageView : m_swapChainImageViews)
+    for (auto& imageView : m_swapchainImageViews)
         m_device.destroy(imageView);
-    m_swapChainImageViews.clear();
+    m_swapchainImageViews.clear();
 }
 
 void vulk::ContextVulkan::createInstance(GLFWwindow* windowHandle)
@@ -389,16 +389,16 @@ void vulk::ContextVulkan::createSwapChain()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createSwapChain()");
 
-    m_swapChainSupport = querySwapChainSupport(m_physicalDevice);
+    m_swapchainSupport = querySwapChainSupport(m_physicalDevice);
 
     chooseSwapSurfaceFormat();
     chooseSwapPresentMode();
     chooseSwapExtent();
 
-    uint32_t imageCount = m_swapChainSupport.capabilities.minImageCount + 1;
-    if (m_swapChainSupport.capabilities.maxImageCount > 0 && imageCount > m_swapChainSupport.capabilities.maxImageCount)
+    uint32_t imageCount = m_swapchainSupport.capabilities.minImageCount + 1;
+    if (m_swapchainSupport.capabilities.maxImageCount > 0 && imageCount > m_swapchainSupport.capabilities.maxImageCount)
     {
-        imageCount = m_swapChainSupport.capabilities.maxImageCount;
+        imageCount = m_swapchainSupport.capabilities.maxImageCount;
     }
 
     vk::SwapchainKHR oldSwapchain = m_swapchain;  // useful when recreating the swapchain
@@ -410,7 +410,7 @@ void vulk::ContextVulkan::createSwapChain()
     createInfo.imageExtent = m_extent;
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;  // vk::ImageUsageFlagBits::eTransferDst later?
-    createInfo.preTransform = m_swapChainSupport.capabilities.currentTransform;
+    createInfo.preTransform = m_swapchainSupport.capabilities.currentTransform;
     createInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;  // customizable later?
     createInfo.presentMode = m_presentMode;
     createInfo.clipped = true;
@@ -437,24 +437,24 @@ void vulk::ContextVulkan::createSwapChain()
     if (oldSwapchain)
         cleanupSwapchain(oldSwapchain);
 
-    m_swapChainImages = m_device.getSwapchainImagesKHR(m_swapchain);
-    m_swapChainFormat = m_surfaceFormat.format;
+    m_swapchainImages = m_device.getSwapchainImagesKHR(m_swapchain);
+    m_swapchainFormat = m_surfaceFormat.format;
 }
 
 void vulk::ContextVulkan::createImageViews()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createImageViews()");
 
-    const auto size = m_swapChainImages.size();
-    m_swapChainImageViews.reserve(size);
+    const auto size = m_swapchainImages.size();
+    m_swapchainImageViews.reserve(size);
 
     for (size_t i = 0; i < size; ++i)
     {
         vk::ImageViewCreateInfo createInfo{};
 
-        createInfo.image = m_swapChainImages[i];
+        createInfo.image = m_swapchainImages[i];
         createInfo.viewType = vk::ImageViewType::e2D;
-        createInfo.format = m_swapChainFormat;
+        createInfo.format = m_swapchainFormat;
         createInfo.components.r = vk::ComponentSwizzle::eIdentity;
         createInfo.components.g = vk::ComponentSwizzle::eIdentity;
         createInfo.components.b = vk::ComponentSwizzle::eIdentity;
@@ -465,7 +465,7 @@ void vulk::ContextVulkan::createImageViews()
         createInfo.subresourceRange.baseArrayLayer = 0;
         createInfo.subresourceRange.layerCount = 1;
 
-        m_swapChainImageViews.push_back(m_device.createImageView(createInfo, nullptr));
+        m_swapchainImageViews.push_back(m_device.createImageView(createInfo, nullptr));
     }
 }
 
@@ -474,7 +474,7 @@ void vulk::ContextVulkan::createRenderPass()
     VULK_SCOPED_PROFILER("ContextVulkan::createRenderPass()");
 
     vk::AttachmentDescription colorAttachment{};
-    colorAttachment.format = m_swapChainFormat;
+    colorAttachment.format = m_swapchainFormat;
     colorAttachment.samples = vk::SampleCountFlagBits::e1;  // TODO: modifiable
     colorAttachment.loadOp = vk::AttachmentLoadOp::eClear;
     colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
@@ -629,9 +629,9 @@ void vulk::ContextVulkan::createFrameBuffers()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createFrameBuffers()");
 
-    m_swapChainFrameBuffers.reserve(m_swapChainImageViews.size());
+    m_swapchainFrameBuffers.reserve(m_swapchainImageViews.size());
 
-    for (const auto& imageView : m_swapChainImageViews)
+    for (const auto& imageView : m_swapchainImageViews)
     {
         vk::ImageView attachments[] = {imageView};
 
@@ -647,7 +647,7 @@ void vulk::ContextVulkan::createFrameBuffers()
         handleVulkanError(m_device.createFramebuffer(&framebufferCreateInfo, nullptr, &framebuffer));
         assert(framebuffer);
 
-        m_swapChainFrameBuffers.push_back(framebuffer);
+        m_swapchainFrameBuffers.push_back(framebuffer);
     }
 }
 
@@ -720,16 +720,16 @@ void vulk::ContextVulkan::createCommandBuffers()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createCommandBuffers()");
 
-    m_commandBuffers.resize(m_swapChainFrameBuffers.size());
+    m_commandBuffers.resize(m_swapchainFrameBuffers.size());
 
     vk::CommandBufferAllocateInfo allocateInfo{};
     allocateInfo.commandPool = m_commandPool;
     allocateInfo.level = vk::CommandBufferLevel::ePrimary;
-    allocateInfo.commandBufferCount = static_cast<uint32_t>(m_swapChainFrameBuffers.size());
+    allocateInfo.commandBufferCount = static_cast<uint32_t>(m_swapchainFrameBuffers.size());
 
     handleVulkanError(m_device.allocateCommandBuffers(&allocateInfo, m_commandBuffers.data()));
 
-    for (size_t i = 0; i < m_swapChainFrameBuffers.size(); ++i)
+    for (size_t i = 0; i < m_swapchainFrameBuffers.size(); ++i)
     {
         vk::CommandBufferBeginInfo beginInfo{};
         // beginInfo.flags = vk::CommandBufferUsageFlagBits::...;
@@ -742,7 +742,7 @@ void vulk::ContextVulkan::createCommandBuffers()
 
         vk::RenderPassBeginInfo renderPassBeginInfo{};
         renderPassBeginInfo.renderPass = m_renderPass;
-        renderPassBeginInfo.framebuffer = m_swapChainFrameBuffers[i];
+        renderPassBeginInfo.framebuffer = m_swapchainFrameBuffers[i];
         renderPassBeginInfo.renderArea.offset = vk::Offset2D{0, 0};
         renderPassBeginInfo.renderArea.extent = m_extent;
         renderPassBeginInfo.clearValueCount = 1;
@@ -770,7 +770,7 @@ void vulk::ContextVulkan::createSyncObject()
 
     fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
 
-    m_imagesInFlight.resize(m_swapChainImages.size());
+    m_imagesInFlight.resize(m_swapchainImages.size());
     m_frameSyncObjects.resize(s_maxFramesInFlight);
 
     for (auto& frameSyncObj : m_frameSyncObjects)
@@ -783,9 +783,9 @@ void vulk::ContextVulkan::createSyncObject()
 
 void vulk::ContextVulkan::chooseSwapSurfaceFormat()
 {
-    assert(!m_swapChainSupport.formats.empty());
+    assert(!m_swapchainSupport.formats.empty());
 
-    for (const auto& format : m_swapChainSupport.formats)
+    for (const auto& format : m_swapchainSupport.formats)
     {
         if (format.format == vk::Format::eB8G8R8A8Srgb && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
         {
@@ -797,7 +797,7 @@ void vulk::ContextVulkan::chooseSwapSurfaceFormat()
 #if VULK_DEBUG
     std::cerr << "Warning: unexpected format support, using the first available one.\n";
 #endif
-    m_surfaceFormat = m_swapChainSupport.formats[0];
+    m_surfaceFormat = m_swapchainSupport.formats[0];
 }
 
 void vulk::ContextVulkan::chooseSwapPresentMode()
@@ -807,7 +807,7 @@ void vulk::ContextVulkan::chooseSwapPresentMode()
         // This can be expensive to search the list again and again,
         // but since the list is less than 5 elements and is done once, shouldn't matter too much.
 
-        if (utils::vectorContains(m_swapChainSupport.presentModes, presentMode))
+        if (utils::vectorContains(m_swapchainSupport.presentModes, presentMode))
         {
             m_presentMode = presentMode;
             return;
@@ -820,7 +820,7 @@ void vulk::ContextVulkan::chooseSwapPresentMode()
 
 void vulk::ContextVulkan::chooseSwapExtent()
 {
-    const auto& caps = m_swapChainSupport.capabilities;
+    const auto& caps = m_swapchainSupport.capabilities;
 
     if (caps.currentExtent.width != std::numeric_limits<uint32_t>::max())
     {
