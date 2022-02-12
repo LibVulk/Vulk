@@ -50,7 +50,7 @@ private:
     TimePoint m_lastFrame{};
     TimePoint m_lastSecond{};
 
-    double m_deltaTime{};
+    float m_deltaTime{};
     uint32_t m_framerate{};
     uint32_t m_frameCounter{};
 
