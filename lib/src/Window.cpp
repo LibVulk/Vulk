@@ -39,7 +39,7 @@ vulk::Window::Window(unsigned int width, unsigned int height, const char* title)
     ContextGLFW::ensureInstance();
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);  // TODO: Dynamic from arguments
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);  // TODO: Dynamic from arguments
 
     m_windowHandle = glfwCreateWindow(static_cast<int>(width), static_cast<int>(height), title, nullptr, nullptr);
 
