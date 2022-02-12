@@ -36,10 +36,13 @@ public:
     ~ContextVulkan();
 
     /**
-     * TODO: This should not be public imo. The Vulkan context should only be exposed to the window.
+     * TODO: This should not be public. The Vulkan context should only be exposed to the window.
      * Calling this function from the static `getInstance().draw()` can break stuff.
      */
     void draw();
+
+    // TODO: should not be public, remove once events are implemented
+    void setFrameBufferResized(bool value) noexcept { m_frameBufferResized = value; }
 
     static void createInstance(GLFWwindow* windowHandle);
     static ContextVulkan& getInstance();
@@ -121,10 +124,10 @@ private:
     explicit ContextVulkan(GLFWwindow* windowHandle);
 
     void createInstance();
-    void createSurface(GLFWwindow* windowHandle);
+    void createSurface();
     void pickPhysicalDevice();
     void createLogicalDevice();
-    void createSwapChain(GLFWwindow* windowHandle);
+    void createSwapChain();
     void createImageViews();
     void createRenderPass();
     void createGraphicsPipeline();
@@ -135,13 +138,17 @@ private:
     void createCommandBuffers();
     void createSyncObject();
 
+    void recreateSwapChain();
     void createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
                       vk::Buffer& outBuffer, vk::DeviceMemory& outDeviceMemory);
     void copyBuffer(const vk::Buffer& sourceBuffer, vk::Buffer& destinationBuffer, vk::DeviceSize size);
 
+    void cleanupSwapchain(vk::SwapchainKHR& swapchain);
+    void cleanupSwapchainSubObjects();
+
     void chooseSwapSurfaceFormat();
     void chooseSwapPresentMode();
-    void chooseSwapExtent(GLFWwindow* windowHandle);
+    void chooseSwapExtent();
 
     [[nodiscard]] uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) const;
 
@@ -151,6 +158,9 @@ private:
     [[nodiscard]] SwapChainSupportDetails querySwapChainSupport(const vk::PhysicalDevice& device) const noexcept;
 
     // TODO: cache image count used in framebuffers, swap-chain, etc
+
+    // TODO: the ContextVulkan should not contain the raw window handle, maybe a Window reference though
+    GLFWwindow* m_windowHandle;
 
     vk::Instance m_instance{};
     vk::PhysicalDevice m_physicalDevice{};
@@ -164,10 +174,10 @@ private:
     vk::Queue m_graphicsQueue{};
     vk::Queue m_presentQueue{};
 
-    vk::SwapchainKHR m_swapChain{};
-    std::vector<vk::Image> m_swapChainImages{};
-    std::vector<vk::ImageView> m_swapChainImageViews{};
-    vk::Format m_swapChainFormat{};
+    vk::SwapchainKHR m_swapchain{};
+    std::vector<vk::Image> m_swapchainImages{};
+    std::vector<vk::ImageView> m_swapchainImageViews{};
+    vk::Format m_swapchainFormat{};
 
     vk::Viewport m_viewport{};
     vk::RenderPass m_renderPass{};
@@ -176,9 +186,9 @@ private:
 
     QueueFamilyIndices m_queueFamilyIndices{};
     QueueFamilyPropertiesList m_queueFamilyProperties{};
-    SwapChainSupportDetails m_swapChainSupport{};
+    SwapChainSupportDetails m_swapchainSupport{};
 
-    std::vector<vk::Framebuffer> m_swapChainFrameBuffers{};
+    std::vector<vk::Framebuffer> m_swapchainFrameBuffers{};
 
     vk::CommandPool m_commandPool{};
     std::vector<vk::CommandBuffer> m_commandBuffers{};
@@ -195,6 +205,8 @@ private:
     size_t m_currentFrame{};
     static const size_t s_maxFramesInFlight;
     //
+
+    bool m_frameBufferResized{false};
 
     template<typename T>
     static constexpr vk::IndexType getIndexType()
