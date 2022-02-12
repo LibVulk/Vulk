@@ -22,5 +22,5 @@
 #include <chrono>
 
 using Clock = std::chrono::high_resolution_clock;
-using Duration = std::chrono::duration<double>;
+using Duration = std::chrono::duration<float>;
 using TimePoint = decltype(Clock::now());
