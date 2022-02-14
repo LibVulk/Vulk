@@ -577,28 +577,13 @@ void vulk::ContextVulkan::createGraphicsPipeline()
     multisampling.sampleShadingEnable = false;
     multisampling.rasterizationSamples = vk::SampleCountFlagBits::e1;
 
-    // temporary manual switch to test things, should be customizable at runtime later
-    static constexpr bool tmpTestEnabled = false;
-
     vk::PipelineColorBlendAttachmentState colorBlendAttachment{};
     colorBlendAttachment.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
                                           vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
-    if constexpr (tmpTestEnabled)  // TODO: investigate and decide what to do
-    {
-        colorBlendAttachment.blendEnable = true;
-        colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
-        colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
-        colorBlendAttachment.colorBlendOp = vk::BlendOp::eAdd;
-        colorBlendAttachment.srcAlphaBlendFactor = vk::BlendFactor::eOne;
-        colorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eZero;
-        colorBlendAttachment.alphaBlendOp = vk::BlendOp::eAdd;
-    } else
-    {
-        colorBlendAttachment.blendEnable = false;
-    }
+    colorBlendAttachment.blendEnable = false;
 
     vk::PipelineColorBlendStateCreateInfo colorBlending{};
-    colorBlending.logicOpEnable = tmpTestEnabled;
+    colorBlending.logicOpEnable = false;
     colorBlending.logicOp = vk::LogicOp::eCopy;
     colorBlending.attachmentCount = 1;
     colorBlending.pAttachments = &colorBlendAttachment;
