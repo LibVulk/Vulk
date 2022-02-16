@@ -24,6 +24,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <array>
 
 namespace vulk {
 template<typename T>
