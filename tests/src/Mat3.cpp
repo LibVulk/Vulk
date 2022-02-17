@@ -95,7 +95,7 @@ TEST(Mat3Tests, InverseTests)
     EXPECT_EQ(i1.m[6], 0.0);
     EXPECT_EQ(i1.m[7], 0.0);
     EXPECT_EQ(i1.m[8], 1.0);
-    
+
     EXPECT_NEAR(i2.m[0], -0.5, 0.01);
     EXPECT_NEAR(i2.m[1], 0.5, 0.01);
     EXPECT_NEAR(i2.m[2], -0.5, 0.01);

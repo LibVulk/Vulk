@@ -24,7 +24,6 @@ vulk::Rect r{0, 5, 10, 5};
 vulk::Rectf r2{1.5f, -4.f, 2.f, 6.5f};
 vulk::Rectd r3{-2.5, 5.2, 10.5, 10.5};
 vulk::Recti r4{-2, -1, 5, 12};
-vulk::Rectu r5{3, 2, 4, 5};
 
 TEST(RectTests, InitTests)
 {
@@ -47,11 +46,6 @@ TEST(RectTests, InitTests)
     EXPECT_EQ(r4.top, -1);
     EXPECT_EQ(r4.width, 5);
     EXPECT_EQ(r4.height, 12);
-
-    EXPECT_EQ(r5.left, 3);
-    EXPECT_EQ(r5.top, 2);
-    EXPECT_EQ(r5.width, 4);
-    EXPECT_EQ(r5.height, 5);
 }
 
 TEST(RectTests, EqualityTests)
@@ -62,7 +56,6 @@ TEST(RectTests, EqualityTests)
     EXPECT_EQ(r2 == r2, true);
     EXPECT_EQ(r3 == r3, true);
     EXPECT_EQ(r4 == r, false);
-    EXPECT_EQ(r5 == r5, true);
 }
 
 TEST(RectTests, InequalityTests)
@@ -73,7 +66,6 @@ TEST(RectTests, InequalityTests)
     EXPECT_EQ(r2 != r2, false);
     EXPECT_EQ(r3 != r3, false);
     EXPECT_EQ(r4 != r, true);
-    EXPECT_EQ(r5 != r5, false);
 }
 
 TEST(RectTests, ContainsTests)
@@ -82,5 +74,4 @@ TEST(RectTests, ContainsTests)
     EXPECT_EQ(r2.contains(1.f, 10.f), false);
     EXPECT_EQ(r3.contains(3, 12), true);
     EXPECT_EQ(r4.contains(-1, 2), true);
-    EXPECT_EQ(r5.contains(2, -2), false);
 }
