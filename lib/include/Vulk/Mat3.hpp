@@ -22,9 +22,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
+#include <array>
 #include <cmath>
 #include <iostream>
-#include <array>
 
 namespace vulk {
 template<typename T>
