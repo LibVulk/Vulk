@@ -20,10 +20,10 @@
 #include <Vulk/Rect.hpp>
 #include <gtest/gtest.h>
 
-vulk::Rect r{0, 5, 10, 5};
-vulk::Rectf r2{1.5f, -4.f, 2.f, 6.5f};
-vulk::Rectd r3{-2.5, 5.2, 10.5, 10.5};
-vulk::Recti r4{-2, -1, 5, 12};
+static constexpr vulk::Rect r{0, 5, 10, 5};
+static constexpr vulk::Rectf r2{1.5f, -4.f, 2.f, 6.5f};
+static constexpr vulk::Rectd r3{-2.5, 5.2, 10.5, 10.5};
+static constexpr vulk::Recti r4{-2, -1, 5, 12};
 
 TEST(RectTests, InitTests)
 {

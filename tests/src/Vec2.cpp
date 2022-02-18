@@ -20,10 +20,10 @@
 #include <Vulk/Vec2.hpp>
 #include <gtest/gtest.h>
 
-vulk::Vec2 v{3, -4};
-vulk::Vec2d v2{5.1, 7.3};
-vulk::Vec2f v3{2.f, 10.f};
-vulk::Vec2i v4{-5, -2};
+static constexpr vulk::Vec2 v{3, -4};
+static constexpr vulk::Vec2d v2{5.1, 7.3};
+static constexpr vulk::Vec2f v3{2.f, 10.f};
+static constexpr vulk::Vec2i v4{-5, -2};
 
 TEST(Vec2Tests, InitTests)
 {

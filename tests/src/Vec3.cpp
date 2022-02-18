@@ -20,10 +20,10 @@
 #include <Vulk/Vec3.hpp>
 #include <gtest/gtest.h>
 
-vulk::Vec3 vc{3, -4, 1};
-vulk::Vec3d vc2{5.1, 7.3, 4.2};
-vulk::Vec3f vc3{2.f, 10.f, 6.f};
-vulk::Vec3i vc4{-5, -2, -7};
+static constexpr vulk::Vec3 vc{3, -4, 1};
+static constexpr vulk::Vec3d vc2{5.1, 7.3, 4.2};
+static constexpr vulk::Vec3f vc3{2.f, 10.f, 6.f};
+static constexpr vulk::Vec3i vc4{-5, -2, -7};
 
 TEST(Vec3Tests, InitTests)
 {
@@ -147,15 +147,6 @@ TEST(Vec3Tests, DotTests)
     EXPECT_NEAR(vulk::Vec3f::dot(vc3, vc3), 140.f, 0.1);
     EXPECT_EQ(vulk::Vec3i::dot(vc4, vc4), 78);
 }
-
-//TEST(Vec3Tests, CrossTests)
-//{
-//    EXPECT_EQ(vulk::Vec3<int>::cross(vc, vulk::Vec3{-4, 1, 3}), );
-//    EXPECT_NEAR(vulk::Vec3d::cross(vc2, vulk::Vec3d{7.3, 4.2, 5.1}), , 0.1);
-//    EXPECT_NEAR(vulk::Vec3f::cross(vc3, vulk::Vec3f{10.f, 6.f, 2.f}), , 0.1);
-//    EXPECT_EQ(vulk::Vec3i::cross(vc4, vulk::Vec3i{-2, -7, -5}), );
-//    EXPECT_EQ(vulk::Vec3u::cross(vc5, vulk::Vec3u{9, 12, 5}), );
-//}
 
 TEST(Vec3Tests, lengthSquaredTests)
 {

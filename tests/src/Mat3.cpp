@@ -20,8 +20,8 @@
 #include <Vulk/Mat3.hpp>
 #include <gtest/gtest.h>
 
-vulk::Mat3<double> m1{1.0};
-vulk::Mat3<double> m2{1.0, 2.0, -1.0, 2.0, 1.0, -1.0, -1.0, 1.0, 2.0};
+static constexpr vulk::Mat3<double> m1{1.0};
+static constexpr vulk::Mat3<double> m2{1.0, 2.0, -1.0, 2.0, 1.0, -1.0, -1.0, 1.0, 2.0};
 
 TEST(Mat3Tests, InitTests)
 {
