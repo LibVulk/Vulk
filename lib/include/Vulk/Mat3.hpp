@@ -22,6 +22,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
+#include <array>
 #include <cmath>
 #include <iostream>
 

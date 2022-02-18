@@ -40,3 +40,6 @@ endif ()
 
 add_subdirectory(lib)
 add_subdirectory(example-app)
+if (${PROJECT_PREFIX}_ENABLE_TESTING)
+    add_subdirectory(tests)
+endif()

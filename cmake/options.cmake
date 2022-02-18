@@ -2,6 +2,7 @@ option(${PROJECT_PREFIX}_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" 
 option(${PROJECT_PREFIX}_WITH_SCOPED_PROFILER "Enable scoped profiler" OFF)
 option(${PROJECT_PREFIX}_ENABLE_IPO "Enable InterProcedural Optimizations [Release mode only]" ON)
 option(${PROJECT_PREFIX}_ENABLE_PCH "Enable Pre Compiled Headers" ON)
+option(${PROJECT_PREFIX}_ENABLE_TESTING "Enable Testing" OFF)
 
 if (${PROJECT_PREFIX}_WITH_SCOPED_PROFILER)
     add_compile_definitions(${PROJECT_PREFIX}_WITH_SCOPED_PROFILER=1)
