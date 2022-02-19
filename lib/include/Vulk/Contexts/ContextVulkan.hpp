@@ -51,11 +51,7 @@ public:
 
 private:
     static void printAvailableValidationLayers();
-    static void verifyValidationLayersSupport();
-    static inline std::vector<vk::LayerProperties> getAvailableValidationLayers()
-    {
-        return vk::enumerateInstanceLayerProperties();
-    }
+    static std::vector<const char*> getSupportedValidationLayers();
 
     static constexpr std::array VALIDATION_LAYER_NAMES{"VK_LAYER_KHRONOS_validation"};
     static constexpr std::array REQUIRED_EXTENSION_NAMES{VK_KHR_SWAPCHAIN_EXTENSION_NAME};

@@ -52,8 +52,7 @@ vulk::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle) : m_windowHandle{wi
     glfwSetFramebufferSizeCallback(m_windowHandle, &framebufferResizeCallback);
 
 #if VULK_DEBUG
-    // printAvailableValidationLayers();
-    verifyValidationLayersSupport();
+    printAvailableValidationLayers();
 #endif
 
     createInstance();
@@ -215,20 +214,21 @@ void vulk::ContextVulkan::draw()
     m_currentFrame = (m_currentFrame + 1) % s_maxFramesInFlight;
 }
 
-void vulk::ContextVulkan::printAvailableValidationLayers()
+[[maybe_unused]] void vulk::ContextVulkan::printAvailableValidationLayers()
 {
     std::cout << "Available Layers:\n";
 
-    for (const auto& layer : getAvailableValidationLayers())
+    for (const auto& layer : vk::enumerateInstanceLayerProperties())
     {
-        std::cout << "\t" << layer.layerName << '\n';
+        std::cout << '\t' << layer.layerName << '\n';
     }
     std::cout.flush();
 }
 
-void vulk::ContextVulkan::verifyValidationLayersSupport()
+std::vector<const char*> vulk::ContextVulkan::getSupportedValidationLayers()
 {
-    const auto& availableLayers = getAvailableValidationLayers();
+    const auto& availableLayers = vk::enumerateInstanceLayerProperties();
+    std::vector<const char*> supported{};
 
     for (const auto& layer : VALIDATION_LAYER_NAMES)
     {
@@ -239,6 +239,7 @@ void vulk::ContextVulkan::verifyValidationLayersSupport()
         {
             if (layerName == availableLayer.layerName)
             {
+                supported.push_back(layer);
                 found = true;
                 break;
             }
@@ -246,10 +247,11 @@ void vulk::ContextVulkan::verifyValidationLayersSupport()
 
         if (!found)
         {
-            // TODO: remove the validation layer instead of throwing an error
-            throw VulkanException("Validation layer `" + std::string(layerName) + "` is not supported");
+            std::cerr << "Warning: Validation layer `" << layerName << "` is not supported.\n";
         }
     }
+
+    return supported;
 }
 
 void vulk::ContextVulkan::createInstance()
@@ -274,8 +276,9 @@ void vulk::ContextVulkan::createInstance()
     createInfo.ppEnabledExtensionNames = glfwExtensions;
 
 #if VULK_DEBUG
-    createInfo.enabledLayerCount = static_cast<uint32_t>(VALIDATION_LAYER_NAMES.size());
-    createInfo.ppEnabledLayerNames = VALIDATION_LAYER_NAMES.data();
+    const auto& validationLayers = getSupportedValidationLayers();
+    createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+    createInfo.ppEnabledLayerNames = validationLayers.data();
 #else
     createInfo.enabledLayerCount = 0;
 #endif
@@ -583,8 +586,6 @@ void vulk::ContextVulkan::createGraphicsPipeline()
     colorBlendAttachment.blendEnable = false;
 
     vk::PipelineColorBlendStateCreateInfo colorBlending{};
-    colorBlending.logicOpEnable = false;
-    colorBlending.logicOp = vk::LogicOp::eCopy;
     colorBlending.attachmentCount = 1;
     colorBlending.pAttachments = &colorBlendAttachment;
 
