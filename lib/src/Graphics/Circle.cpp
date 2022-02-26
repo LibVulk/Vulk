@@ -17,26 +17,4 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
-
-#include <glm/vec2.hpp>
-
-namespace vulk {
-class ADrawable
-{
-public:
-    ADrawable() = default;
-    explicit ADrawable(const glm::vec2& position) : m_position{position} {}
-
-    virtual ~ADrawable() = default;
-
-    virtual void draw() const = 0;
-
-    virtual void setPosition(const glm::vec2& position);
-
-    [[nodiscard]] const auto& getPosition() const noexcept { return m_position; }
-
-protected:
-    glm::vec2 m_position{};
-};
-}  // namespace vulk
+#include "Vulk/Graphics/Circle.hpp"

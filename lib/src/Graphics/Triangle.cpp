@@ -17,16 +17,4 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
-
-#include "Drawable.hpp"
-#include "Vulk/Graphics/Drawable.hpp"
-
-namespace vulk {
-class Shape : public ADrawable
-{
-public:
-    Shape() = default;
-    explicit Shape(const glm::vec2& position) : ADrawable{position} {}
-};
-}  // namespace vulk
+#include "Vulk/Graphics/Triangle.hpp"

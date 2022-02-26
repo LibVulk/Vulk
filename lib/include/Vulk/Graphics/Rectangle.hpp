@@ -17,9 +17,11 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "Vulk/Graphics/Drawable.hpp"
+#pragma once
+#include "Vulk/Graphics/AShape.hpp"
 
-void vulk::ADrawable::setPosition(const glm::vec2& position)
+namespace vulk {
+class Rectangle : public AShape
 {
-    m_position = position;
-}
+};
+}  // namespace vulk

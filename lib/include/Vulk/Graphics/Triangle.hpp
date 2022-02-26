@@ -17,4 +17,12 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "Vulk/Graphics/Shape.hpp"
+#pragma once
+
+#include "Vulk/Graphics/AShape.hpp"
+
+namespace vulk {
+class Triangle : public AShape
+{
+};
+}  // namespace vulk
