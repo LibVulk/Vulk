@@ -133,8 +133,12 @@ private:
     void createVertexBuffer();
     void createIndexBuffer();
     void createUniformBuffers();
+    void createDescriptorPool();
+    void createDescriptorSets();
     void createCommandBuffers();
     void createSyncObject();
+
+    void recordCommandBuffer(vk::CommandBuffer& commandBuffer, uint32_t imageIndex);
 
     void recreateSwapChain();
     void createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
@@ -206,6 +210,9 @@ private:
     std::vector<vk::Buffer> m_uniformBuffers{};
     std::vector<vk::DeviceMemory> m_uniformBuffersMemory{};
 
+    vk::DescriptorPool m_descriptorPool{};
+    std::vector<vk::DescriptorSet> m_descriptorSets{};
+
     // TODO: May be better to store in the FrameManager
     size_t m_currentFrame{};
     static const size_t s_maxFramesInFlight;
@@ -228,6 +235,7 @@ private:
         return vk::IndexType::eNoneKHR;
     }
 
+    static constexpr auto s_noTimeout = std::numeric_limits<uint64_t>::max();
     static constexpr std::array s_vertices{Vertex{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},  //
                                            Vertex{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},   //
                                            Vertex{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},    //
