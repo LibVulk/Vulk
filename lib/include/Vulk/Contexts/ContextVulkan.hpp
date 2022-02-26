@@ -26,7 +26,7 @@
 #include <optional>
 
 #include "Vulk/ClassUtils.hpp"
-#include "Vulk/Vertex.hpp"
+#include "Vulk/Objects.hpp"
 #include "Vulk/Window.hpp"
 
 namespace vulk {
@@ -126,11 +126,13 @@ private:
     void createSwapChain();
     void createImageViews();
     void createRenderPass();
+    void createDescriptorSetLayout();
     void createGraphicsPipeline();
     void createFrameBuffers();
     void createCommandPool();
     void createVertexBuffer();
     void createIndexBuffer();
+    void createUniformBuffers();
     void createCommandBuffers();
     void createSyncObject();
 
@@ -145,6 +147,8 @@ private:
     void chooseSwapSurfaceFormat();
     void chooseSwapPresentMode();
     void chooseSwapExtent();
+
+    void updateUniformBuffer(uint32_t currentImage);
 
     [[nodiscard]] uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) const;
 
@@ -177,6 +181,8 @@ private:
 
     vk::Viewport m_viewport{};
     vk::RenderPass m_renderPass{};
+
+    vk::DescriptorSetLayout m_descriptorSetLayout{};
     vk::PipelineLayout m_pipelineLayout{};
     vk::Pipeline m_pipeline{};
 
@@ -196,6 +202,9 @@ private:
     vk::DeviceMemory m_vertexBufferMemory{};
     vk::Buffer m_indexBuffer{};
     vk::DeviceMemory m_indexBufferMemory{};
+
+    std::vector<vk::Buffer> m_uniformBuffers{};
+    std::vector<vk::DeviceMemory> m_uniformBuffersMemory{};
 
     // TODO: May be better to store in the FrameManager
     size_t m_currentFrame{};

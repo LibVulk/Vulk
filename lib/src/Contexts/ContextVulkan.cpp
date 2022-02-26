@@ -20,7 +20,10 @@
 #include "Vulk/Contexts/ContextVulkan.hpp"
 
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
+#include <chrono>
 #include <iostream>
 #include <set>
 #include <string_view>
@@ -62,11 +65,13 @@ vulk::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle) : m_windowHandle{wi
     createSwapChain();
     createImageViews();
     createRenderPass();
+    createDescriptorSetLayout();
     createGraphicsPipeline();
     createFrameBuffers();
     createCommandPool();
     createVertexBuffer();
     createIndexBuffer();
+    createUniformBuffers();
     createCommandBuffers();
     createSyncObject();
 
@@ -86,6 +91,8 @@ vulk::ContextVulkan::~ContextVulkan()
         m_device.waitIdle();
 
         cleanupSwapchain(m_swapchain);
+
+        m_device.destroy(m_descriptorSetLayout);
 
         for (auto& frameSemaphore : m_frameSyncObjects)
             frameSemaphore.destroy(m_device);
@@ -108,6 +115,14 @@ void vulk::ContextVulkan::cleanupSwapchain(vk::SwapchainKHR& swapchain)
 {
     if (!m_device)
         return;
+
+    for (size_t i = 0; i < s_maxFramesInFlight; ++i)
+    {
+        m_device.destroy(m_uniformBuffers[i]);
+        m_device.freeMemory(m_uniformBuffersMemory[i]);
+    }
+    m_uniformBuffers.clear();
+    m_uniformBuffersMemory.clear();
 
     for (auto& framebuffer : m_swapchainFrameBuffers)
         m_device.destroy(framebuffer);
@@ -174,6 +189,8 @@ void vulk::ContextVulkan::draw()
     if (m_imagesInFlight[imageIndex])
         handleVulkanError(m_device.waitForFences(1, &m_imagesInFlight[imageIndex], true, NO_TIMEOUT));
     m_imagesInFlight[imageIndex] = m_imagesInFlight[m_currentFrame];
+
+    updateUniformBuffer(imageIndex);
 
     const std::array swapChains{m_swapchain};
     const std::array waitSemaphores{m_frameSyncObjects[m_currentFrame].imageAvailable};
@@ -397,6 +414,7 @@ void vulk::ContextVulkan::recreateSwapChain()
     createRenderPass();
     createGraphicsPipeline();
     createFrameBuffers();
+    createUniformBuffers();
     createCommandBuffers();
 }
 
@@ -527,6 +545,23 @@ void vulk::ContextVulkan::createRenderPass()
     assert(m_renderPass);
 }
 
+void vulk::ContextVulkan::createDescriptorSetLayout()
+{
+    VULK_SCOPED_PROFILER("ContextVulkan::createDescriptorSetLayout()");
+
+    vk::DescriptorSetLayoutBinding uboLayoutBindings{};
+    uboLayoutBindings.binding = 0;
+    uboLayoutBindings.descriptorType = vk::DescriptorType::eUniformBuffer;
+    uboLayoutBindings.descriptorCount = 1;
+    uboLayoutBindings.stageFlags = vk::ShaderStageFlagBits::eVertex;
+
+    vk::DescriptorSetLayoutCreateInfo createInfo{};
+    createInfo.bindingCount = 1;
+    createInfo.pBindings = &uboLayoutBindings;
+
+    handleVulkanError(m_device.createDescriptorSetLayout(&createInfo, nullptr, &m_descriptorSetLayout));
+}
+
 void vulk::ContextVulkan::createGraphicsPipeline()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createGraphicsPipeline()");
@@ -594,7 +629,9 @@ void vulk::ContextVulkan::createGraphicsPipeline()
     dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStatesArray.size());
     dynamicState.pDynamicStates = dynamicStatesArray.data();
 
-    vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo{};  // empty for now
+    vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
+    pipelineLayoutCreateInfo.setLayoutCount = 1;
+    pipelineLayoutCreateInfo.pSetLayouts = &m_descriptorSetLayout;
 
     handleVulkanError(m_device.createPipelineLayout(&pipelineLayoutCreateInfo, nullptr, &m_pipelineLayout));
     assert(m_pipelineLayout);
@@ -712,6 +749,23 @@ void vulk::ContextVulkan::createIndexBuffer()
     // TODO: vk::raii
     m_device.destroy(stagingBuffer);
     m_device.freeMemory(stagingBufferMemory);
+}
+
+void vulk::ContextVulkan::createUniformBuffers()
+{
+    VULK_SCOPED_PROFILER("ContextVulkan::createUniformBuffers()");
+
+    static constexpr size_t BUFFER_SIZE = sizeof(UniformBufferObject);
+
+    m_uniformBuffers.resize(s_maxFramesInFlight);
+    m_uniformBuffersMemory.resize(s_maxFramesInFlight);
+
+    for (size_t i = 0; i < s_maxFramesInFlight; ++i)
+    {
+        createBuffer(BUFFER_SIZE, vk::BufferUsageFlagBits::eUniformBuffer,
+                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+                     m_uniformBuffers[i], m_uniformBuffersMemory[i]);
+    }
 }
 
 void vulk::ContextVulkan::createCommandBuffers()
@@ -833,6 +887,25 @@ void vulk::ContextVulkan::chooseSwapExtent()
           std::clamp(static_cast<uint32_t>(width), caps.minImageExtent.width, caps.maxImageExtent.width),
           std::clamp(static_cast<uint32_t>(height), caps.minImageExtent.height, caps.maxImageExtent.height)};
     }
+}
+
+void vulk::ContextVulkan::updateUniformBuffer(uint32_t currentImage)
+{
+    static auto startTime = Clock::now();
+    auto currentTime = Clock::now();
+    auto delta = vulk::Duration{currentTime - startTime}.count();
+
+    UniformBufferObject ubo{
+      glm::rotate(glm::mat4(1.0f), delta * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+      glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+      glm::perspective(glm::radians(45.0f), static_cast<float>(m_extent.width) / static_cast<float>(m_extent.height),
+                       0.1f, 10.0f)};
+    ubo.projection[1][1] *= -1;
+
+    void* data;
+    handleVulkanError(m_device.mapMemory(m_uniformBuffersMemory[currentImage], 0, sizeof(ubo), {}, &data));
+    std::memcpy(data, &ubo, sizeof(ubo));
+    m_device.unmapMemory(m_uniformBuffersMemory[currentImage]);
 }
 
 void vulk::ContextVulkan::createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage,
