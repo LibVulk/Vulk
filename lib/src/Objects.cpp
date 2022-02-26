@@ -17,7 +17,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "Vulk/Vertex.hpp"
+#include "Vulk/Objects.hpp"
 
 vk::VertexInputBindingDescription Vertex::getBindingDescription() noexcept
 {

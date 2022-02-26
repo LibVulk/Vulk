@@ -26,7 +26,7 @@
 #include <optional>
 
 #include "Vulk/ClassUtils.hpp"
-#include "Vulk/Vertex.hpp"
+#include "Vulk/Objects.hpp"
 #include "Vulk/Window.hpp"
 
 namespace vulk {
@@ -51,11 +51,7 @@ public:
 
 private:
     static void printAvailableValidationLayers();
-    static void verifyValidationLayersSupport();
-    static inline std::vector<vk::LayerProperties> getAvailableValidationLayers()
-    {
-        return vk::enumerateInstanceLayerProperties();
-    }
+    static std::vector<const char*> getSupportedValidationLayers();
 
     static constexpr std::array VALIDATION_LAYER_NAMES{"VK_LAYER_KHRONOS_validation"};
     static constexpr std::array REQUIRED_EXTENSION_NAMES{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
@@ -130,13 +126,19 @@ private:
     void createSwapChain();
     void createImageViews();
     void createRenderPass();
+    void createDescriptorSetLayout();
     void createGraphicsPipeline();
     void createFrameBuffers();
     void createCommandPool();
     void createVertexBuffer();
     void createIndexBuffer();
+    void createUniformBuffers();
+    void createDescriptorPool();
+    void createDescriptorSets();
     void createCommandBuffers();
     void createSyncObject();
+
+    void recordCommandBuffer(vk::CommandBuffer& commandBuffer, uint32_t imageIndex);
 
     void recreateSwapChain();
     void createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
@@ -149,6 +151,8 @@ private:
     void chooseSwapSurfaceFormat();
     void chooseSwapPresentMode();
     void chooseSwapExtent();
+
+    void updateUniformBuffer(uint32_t currentImage);
 
     [[nodiscard]] uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) const;
 
@@ -181,6 +185,8 @@ private:
 
     vk::Viewport m_viewport{};
     vk::RenderPass m_renderPass{};
+
+    vk::DescriptorSetLayout m_descriptorSetLayout{};
     vk::PipelineLayout m_pipelineLayout{};
     vk::Pipeline m_pipeline{};
 
@@ -200,6 +206,12 @@ private:
     vk::DeviceMemory m_vertexBufferMemory{};
     vk::Buffer m_indexBuffer{};
     vk::DeviceMemory m_indexBufferMemory{};
+
+    std::vector<vk::Buffer> m_uniformBuffers{};
+    std::vector<vk::DeviceMemory> m_uniformBuffersMemory{};
+
+    vk::DescriptorPool m_descriptorPool{};
+    std::vector<vk::DescriptorSet> m_descriptorSets{};
 
     // TODO: May be better to store in the FrameManager
     size_t m_currentFrame{};
@@ -223,6 +235,7 @@ private:
         return vk::IndexType::eNoneKHR;
     }
 
+    static constexpr auto s_noTimeout = std::numeric_limits<uint64_t>::max();
     static constexpr std::array s_vertices{Vertex{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},  //
                                            Vertex{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},   //
                                            Vertex{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},    //

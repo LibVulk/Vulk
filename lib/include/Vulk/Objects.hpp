@@ -32,3 +32,10 @@ struct Vertex
     static vk::VertexInputBindingDescription getBindingDescription() noexcept;
     static AttributeDescriptions getAttributeDescriptions() noexcept;
 };
+
+struct alignas(16) UniformBufferObject
+{
+    glm::mat4 model{};
+    glm::mat4 view{};
+    glm::mat4 projection{};
+};

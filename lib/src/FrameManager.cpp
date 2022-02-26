@@ -47,7 +47,7 @@ void vulk::FrameManager::update() noexcept
         m_lastSecond = timePoint;
 
         if (m_onSecondCallback.has_value())
-            m_onSecondCallback.value()(*this);
+            (*m_onSecondCallback)(*this);
     }
 }
 
