@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <vulkan/vulkan.hpp>
+
 #include "ADrawable.hpp"
 #include "Vulk/Graphics/ADrawable.hpp"
 

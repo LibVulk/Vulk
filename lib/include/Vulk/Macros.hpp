@@ -63,9 +63,9 @@
     VULK_DEFAULT_COPY(ClassName)              \
     VULK_DEFAULT_MOVE(ClassName)
 
-// Check if std::execution is supported, still need to include <execution> in files using the feature
-// Added a comma at the end so that we can use `std::for_each(VULK_EXEC_PAR_UNSEQ vec.begin(), ...)` \
-// regardless std::execution is supported or not
+// Check if std::execution is supported, still need to include <execution> in files using the feature.
+// Added a comma at the end so that we can use `std::for_each(VULK_EXEC_PAR_UNSEQ vec.begin(), ...)`
+// regardless std::execution is supported or not.
 #if defined(__cpp_lib_execution) && defined(__cpp_lib_parallel_algorithm)
     #define VULK_HAS_EXECUTION_POLICIES 1
     #define VULK_EXEC_SEQ               std::execution::seq,        // C++17

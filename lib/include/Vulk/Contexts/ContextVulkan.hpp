@@ -35,10 +35,6 @@ class ContextVulkan
 public:
     ~ContextVulkan();
 
-    /**
-     * TODO: This should not be public. The Vulkan context should only be exposed to the window.
-     * Calling this function from the static `getInstance().draw()` can break stuff.
-     */
     void draw();
 
     void createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
