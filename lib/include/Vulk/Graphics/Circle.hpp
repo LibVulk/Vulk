@@ -18,6 +18,7 @@
  */
 
 #pragma once
+
 #include "Vulk/Graphics/AShape.hpp"
 
 namespace vulk {

@@ -19,6 +19,11 @@
 
 #include "Vulk/Graphics/ADrawable.hpp"
 
+void vulk::ADrawable::setScale(const glm::vec2& scale)
+{
+    m_scale = scale;
+}
+
 void vulk::ADrawable::setOrigin(const glm::vec2& origin)
 {
     m_origin = origin;

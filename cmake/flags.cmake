@@ -9,13 +9,6 @@ if (MSVC)
     #    link_libraries(legacy_stdio_definitions)
 endif ()
 
-# TODO: proper std::execution availability check
-if (CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
-    add_compile_definitions(${PROJECT_PREFIX}_HAS_EXEC_POLICIES=0)
-else ()
-    add_compile_definitions(${PROJECT_PREFIX}_HAS_EXEC_POLICIES=1)
-endif ()
-
 if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
     add_compile_definitions(${PROJECT_PREFIX}_DEBUG=1)
     add_compile_definitions(${PROJECT_PREFIX}_RELEASE=0)

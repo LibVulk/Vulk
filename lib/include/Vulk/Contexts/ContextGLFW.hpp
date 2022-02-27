@@ -21,7 +21,7 @@
 
 #include <memory>
 
-#include "Vulk/ClassUtils.hpp"
+#include "Vulk/Macros.hpp"
 
 namespace vulk {
 class ContextGLFW

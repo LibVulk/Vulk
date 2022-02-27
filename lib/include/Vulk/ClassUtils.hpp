@@ -19,30 +19,6 @@
 
 #pragma once
 
-#define VULK_NO_COPY(ClassName)           \
-    ClassName(const ClassName&) = delete; \
-    ClassName& operator=(const ClassName&) = delete;
-
-#define VULK_NO_MOVE(ClassName)      \
-    ClassName(ClassName&&) = delete; \
-    ClassName& operator=(ClassName&&) = delete;
-
-#define VULK_NO_MOVE_OR_COPY(ClassName) \
-    VULK_NO_COPY(ClassName)             \
-    VULK_NO_MOVE(ClassName)
-
-#define VULK_DEFAULT_COPY(ClassName)       \
-    ClassName(const ClassName&) = default; \
-    ClassName& operator=(const ClassName&) = default;
-
-#define VULK_DEFAULT_MOVE(ClassName)  \
-    ClassName(ClassName&&) = default; \
-    ClassName& operator=(ClassName&&) = default;
-
-#define VULK_DEFAULT_MOVE_AND_COPY(ClassName) \
-    VULK_DEFAULT_COPY(ClassName)              \
-    VULK_DEFAULT_MOVE(ClassName)
-
 /**
  * Forces a compile error and shows the type of a variable.
  * Useful tool when searching for an auto type or deep library calls.

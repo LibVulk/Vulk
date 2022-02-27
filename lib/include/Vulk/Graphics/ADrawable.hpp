@@ -34,12 +34,15 @@ public:
 
     virtual void setOrigin(const glm::vec2& origin);
     virtual void setPosition(const glm::vec2& position);
+    virtual void setScale(const glm::vec2& scale);
 
     [[nodiscard]] const auto& getOrigin() const noexcept { return m_origin; }
     [[nodiscard]] const auto& getPosition() const noexcept { return m_position; }
+    [[nodiscard]] const auto& getScale() const noexcept { return m_scale; }
 
 protected:
     glm::vec2 m_origin{};
     glm::vec2 m_position{};
+    glm::vec2 m_scale{};
 };
 }  // namespace vulk

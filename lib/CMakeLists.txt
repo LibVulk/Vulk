@@ -19,7 +19,7 @@ add_library(
         src/Objects.cpp include/Vulk/Objects.hpp
         src/Graphics/ADrawable.cpp include/Vulk/Graphics/ADrawable.hpp
         src/Graphics/AShape.cpp include/Vulk/Graphics/AShape.hpp
-        src/Graphics/Triangle.cpp include/Vulk/Graphics/Triangle.hpp src/Graphics/Rectangle.cpp include/Vulk/Graphics/Rectangle.hpp src/Graphics/Circle.cpp include/Vulk/Graphics/Circle.hpp)
+        src/Graphics/Triangle.cpp include/Vulk/Graphics/Triangle.hpp src/Graphics/Rectangle.cpp include/Vulk/Graphics/Rectangle.hpp src/Graphics/Circle.cpp include/Vulk/Graphics/Circle.hpp include/Vulk/Macros.hpp)
 
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 

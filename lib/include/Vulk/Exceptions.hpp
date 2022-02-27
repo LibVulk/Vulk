@@ -23,7 +23,7 @@
 
 #include <stdexcept>
 
-#include "Vulk/ClassUtils.hpp"
+#include "Vulk/Macros.hpp"
 
 namespace vulk {
 class Exception : public std::exception

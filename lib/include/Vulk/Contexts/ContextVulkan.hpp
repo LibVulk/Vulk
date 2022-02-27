@@ -25,7 +25,7 @@
 #include <memory>
 #include <optional>
 
-#include "Vulk/ClassUtils.hpp"
+#include "Vulk/Macros.hpp"
 #include "Vulk/Objects.hpp"
 #include "Vulk/Window.hpp"
 

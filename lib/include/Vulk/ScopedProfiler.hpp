@@ -22,6 +22,8 @@
 #include <chrono>
 #include <utility>
 
+#include "Vulk/Macros.hpp"
+
 namespace vulk::utils {
 class ScopedProfiler final
 {
@@ -45,11 +47,8 @@ private:
 };
 }  // namespace vulk::utils
 
-#define VULK_STR_IMPL(x, y) x##y
-#define VULK_STR(x, y)      VULK_STR_IMPL(x, y)
-
 #if VULK_WITH_SCOPED_PROFILER
-    #define VULK_SCOPED_PROFILER(x) const vulk::utils::ScopedProfiler VULK_STR(_SCOPED_PROFILER_, __LINE__)(x)
+    #define VULK_SCOPED_PROFILER(x) const vulk::utils::ScopedProfiler VULK_STRCAT(_SCOPED_PROFILER_, __LINE__)(x)
 #else
     #define VULK_SCOPED_PROFILER(x) (void) 0
 #endif
