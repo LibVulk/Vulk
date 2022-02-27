@@ -27,6 +27,8 @@ include(cmake/options.cmake)  # *needs to be first*
 include(cmake/warnings.cmake)
 include(cmake/flags.cmake)
 include(cmake/functions.cmake)
+include(cmake/Doxygen.cmake)
+enable_doxygen()
 
 if (${CMAKE_BUILD_TYPE} MATCHES "Release" AND ${${PROJECT_PREFIX}_ENABLE_IPO})
     include(CheckIPOSupported)
