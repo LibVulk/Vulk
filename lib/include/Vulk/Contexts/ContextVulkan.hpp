@@ -29,7 +29,7 @@
 #include "Vulk/Objects.hpp"
 #include "Vulk/Window.hpp"
 
-namespace vulk {
+namespace vulk::detail {
 class ContextVulkan
 {
 public:
@@ -40,6 +40,11 @@ public:
      * Calling this function from the static `getInstance().draw()` can break stuff.
      */
     void draw();
+
+    void createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
+                      vk::Buffer& outBuffer, vk::DeviceMemory& outDeviceMemory);
+    void destroyBuffer(vk::Buffer buffer);
+    void freeBufferMem(vk::DeviceMemory deviceMemory);
 
     // TODO: should not be public, remove once events are implemented
     void setFrameBufferResized(bool value) noexcept { m_frameBufferResized = value; }
@@ -130,8 +135,6 @@ private:
     void createGraphicsPipeline();
     void createFrameBuffers();
     void createCommandPool();
-    void createVertexBuffer();
-    void createIndexBuffer();
     void createUniformBuffers();
     void createDescriptorPool();
     void createDescriptorSets();
@@ -141,8 +144,6 @@ private:
     void recordCommandBuffer(vk::CommandBuffer& commandBuffer, uint32_t imageIndex);
 
     void recreateSwapChain();
-    void createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
-                      vk::Buffer& outBuffer, vk::DeviceMemory& outDeviceMemory);
     void copyBuffer(const vk::Buffer& sourceBuffer, vk::Buffer& destinationBuffer, vk::DeviceSize size);
 
     void cleanupSwapchain(vk::SwapchainKHR& swapchain);
@@ -202,11 +203,6 @@ private:
     std::vector<FrameSyncObjects> m_frameSyncObjects{};
     std::vector<vk::Fence> m_imagesInFlight{};
 
-    vk::Buffer m_vertexBuffer{};
-    vk::DeviceMemory m_vertexBufferMemory{};
-    vk::Buffer m_indexBuffer{};
-    vk::DeviceMemory m_indexBufferMemory{};
-
     std::vector<vk::Buffer> m_uniformBuffers{};
     std::vector<vk::DeviceMemory> m_uniformBuffersMemory{};
 
@@ -244,4 +240,4 @@ private:
 
     static std::unique_ptr<ContextVulkan> s_instance;
 };
-}  // namespace vulk
+}  // namespace vulk::detail

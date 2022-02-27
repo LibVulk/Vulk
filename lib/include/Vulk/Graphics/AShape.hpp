@@ -27,6 +27,13 @@ class AShape : public ADrawable
 {
 public:
     AShape() = default;
+    ~AShape() override;
     explicit AShape(const glm::vec2& position) : ADrawable{position} {}
+
+private:
+    vk::Buffer m_vertexBuffer{};
+    vk::DeviceMemory m_vertexBufferMemory{};
+    vk::Buffer m_indexBuffer{};
+    vk::DeviceMemory m_indexBufferMemory{};
 };
 }  // namespace vulk

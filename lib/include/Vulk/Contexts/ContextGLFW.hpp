@@ -23,7 +23,7 @@
 
 #include "Vulk/Macros.hpp"
 
-namespace vulk {
+namespace vulk::detail {
 class ContextGLFW
 {
 public:
@@ -43,4 +43,4 @@ private:
 
     static std::unique_ptr<ContextGLFW> s_instance;
 };
-}  // namespace vulk
+}  // namespace vulk::detail

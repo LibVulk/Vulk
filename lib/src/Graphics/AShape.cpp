@@ -18,3 +18,15 @@
  */
 
 #include "Vulk/Graphics/AShape.hpp"
+
+#include "Vulk/Contexts/ContextVulkan.hpp"
+
+vulk::AShape::~AShape()
+{
+    auto& vulkInstance = detail::ContextVulkan::getInstance();
+
+    vulkInstance.destroyBuffer(m_indexBuffer);
+    vulkInstance.destroyBuffer(m_vertexBuffer);
+    vulkInstance.freeBufferMem(m_indexBufferMemory);
+    vulkInstance.freeBufferMem(m_vertexBufferMemory);
+}
