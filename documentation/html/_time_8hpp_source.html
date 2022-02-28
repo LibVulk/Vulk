@@ -60,24 +60,65 @@ $(function() {
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="comment"> *     in the product documentation would be appreciated but is not required.</span></div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="comment"> *</span></div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="comment"> * 2. Altered source versions must be plainly marked as such, and must not be misrepresented</span></div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="comment"> * as being the original software.</span></div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="comment"> *</span></div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="comment"> * 3. This notice may not be removed or altered from any source distribution.</span></div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="comment"> */</span></div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span> </div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#pragma once</span></div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &lt;chrono&gt;</span></div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacevulk.html">vulk</a> {</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno"><a class="line" href="namespacevulk.html#a70b8b9e0f3477dd9db96f04da31a3e6b">   25</a></span><span class="keyword">using</span> <a class="code hl_typedef" href="namespacevulk.html#a70b8b9e0f3477dd9db96f04da31a3e6b">Clock</a> = std::chrono::high_resolution_clock;</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="namespacevulk.html#adf9fb8e3b14e18173c320bb751f0bdaf">   26</a></span><span class="keyword">using</span> <a class="code hl_typedef" href="namespacevulk.html#adf9fb8e3b14e18173c320bb751f0bdaf">Duration</a> = std::chrono::duration&lt;float&gt;;</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="namespacevulk.html#a7aca053e44e9f0d0bff16c0d9d3a984d">   27</a></span><span class="keyword">using</span> <a class="code hl_typedef" href="namespacevulk.html#a7aca053e44e9f0d0bff16c0d9d3a984d">TimePoint</a> = <span class="keyword">decltype</span>(Clock::now());</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>}  <span class="comment">// namespace vulk</span></div>
-<div class="ttc" id="anamespacevulk_html"><div class="ttname"><a href="namespacevulk.html">vulk</a></div><div class="ttdef"><b>Definition:</b> ContextGLFW.hpp:26</div></div>
-<div class="ttc" id="anamespacevulk_html_a70b8b9e0f3477dd9db96f04da31a3e6b"><div class="ttname"><a href="namespacevulk.html#a70b8b9e0f3477dd9db96f04da31a3e6b">vulk::Clock</a></div><div class="ttdeci">std::chrono::high_resolution_clock Clock</div><div class="ttdef"><b>Definition:</b> Time.hpp:25</div></div>
-<div class="ttc" id="anamespacevulk_html_a7aca053e44e9f0d0bff16c0d9d3a984d"><div class="ttname"><a href="namespacevulk.html#a7aca053e44e9f0d0bff16c0d9d3a984d">vulk::TimePoint</a></div><div class="ttdeci">decltype(Clock::now()) TimePoint</div><div class="ttdef"><b>Definition:</b> Time.hpp:27</div></div>
-<div class="ttc" id="anamespacevulk_html_adf9fb8e3b14e18173c320bb751f0bdaf"><div class="ttname"><a href="namespacevulk.html#adf9fb8e3b14e18173c320bb751f0bdaf">vulk::Duration</a></div><div class="ttdeci">std::chrono::duration&lt; float &gt; Duration</div><div class="ttdef"><b>Definition:</b> Time.hpp:26</div></div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="comment"> * as being the original software.</span>
+</div>
+    <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="comment"> *</span>
+    </div>
+    <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="comment"> * 3. This notice may not be removed or altered from any source distribution.</span>
+    </div>
+    <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="comment"> */</span>
+    </div>
+    <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span></div>
+    <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#pragma once</span>
+    </div>
+    <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span></div>
+    <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &lt;chrono&gt;</span>
+    </div>
+    <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span></div>
+    <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span
+            class="keyword">namespace </span><a class="code hl_namespace" href="namespacevulk.html">vulk</a> {
+    </div>
+    <div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line"
+                                                                               href="namespacevulk.html#a70b8b9e0f3477dd9db96f04da31a3e6b">   28</a></span><span
+            class="keyword">using</span> <a class="code hl_typedef"
+                                            href="namespacevulk.html#a70b8b9e0f3477dd9db96f04da31a3e6b">Clock</a> =
+        std::chrono::high_resolution_clock;
+    </div>
+    <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span></div>
+    <div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line"
+                                                                               href="namespacevulk.html#adf9fb8e3b14e18173c320bb751f0bdaf">   33</a></span><span
+            class="keyword">using</span> <a class="code hl_typedef"
+                                            href="namespacevulk.html#adf9fb8e3b14e18173c320bb751f0bdaf">Duration</a> =
+        std::chrono::duration&lt;float&gt;;
+    </div>
+    <div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span></div>
+    <div class="line"><a id="l00038" name="l00038"></a><span class="lineno"><a class="line"
+                                                                               href="namespacevulk.html#a7aca053e44e9f0d0bff16c0d9d3a984d">   38</a></span><span
+            class="keyword">using</span> <a class="code hl_typedef"
+                                            href="namespacevulk.html#a7aca053e44e9f0d0bff16c0d9d3a984d">TimePoint</a> =
+        <span class="keyword">decltype</span>(Clock::now());
+    </div>
+    <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>} <span class="comment">// namespace vulk</span>
+    </div>
+    <div class="ttc" id="anamespacevulk_html">
+        <div class="ttname"><a href="namespacevulk.html">vulk</a></div>
+        <div class="ttdef"><b>Definition:</b> Color.hpp:25</div>
+    </div>
+    <div class="ttc" id="anamespacevulk_html_a70b8b9e0f3477dd9db96f04da31a3e6b">
+        <div class="ttname"><a href="namespacevulk.html#a70b8b9e0f3477dd9db96f04da31a3e6b">vulk::Clock</a></div>
+        <div class="ttdeci">std::chrono::high_resolution_clock Clock</div>
+        <div class="ttdef"><b>Definition:</b> Time.hpp:28</div>
+    </div>
+    <div class="ttc" id="anamespacevulk_html_a7aca053e44e9f0d0bff16c0d9d3a984d">
+        <div class="ttname"><a href="namespacevulk.html#a7aca053e44e9f0d0bff16c0d9d3a984d">vulk::TimePoint</a></div>
+        <div class="ttdeci">decltype(Clock::now()) TimePoint</div>
+        <div class="ttdef"><b>Definition:</b> Time.hpp:38</div>
+    </div>
+    <div class="ttc" id="anamespacevulk_html_adf9fb8e3b14e18173c320bb751f0bdaf">
+        <div class="ttname"><a href="namespacevulk.html#adf9fb8e3b14e18173c320bb751f0bdaf">vulk::Duration</a></div>
+        <div class="ttdeci">std::chrono::duration&lt; float &gt; Duration</div>
+        <div class="ttdef"><b>Definition:</b> Time.hpp:33</div>
+    </div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
