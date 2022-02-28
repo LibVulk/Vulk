@@ -26,6 +26,10 @@
 
 namespace vulk {
 template<typename T>
+/**
+ * @brief
+ * The Rect structure that can be use for mathematical purpose or for setting hitboxes for example
+ */
 struct Rect
 {
     T left;

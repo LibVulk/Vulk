@@ -24,6 +24,11 @@
 
 namespace vulk {
 template<typename T>
+/**
+ * @brief
+ * The Vec3 structure that can be use to create objects or do mathematical operations
+ *
+ */
 struct Vec3
 {
     T x;
@@ -32,30 +37,34 @@ struct Vec3
 
     /**
      * @brief
-     *
+     * The default constructor
      */
     constexpr Vec3() = default;
     /**
      * @brief
-     *
+     * Vec3 constructor with three different parameters
+     * @param aX x value of the vector
+     * @param aY y value of the vector
+     * @param aZ z value of the vector
      */
     constexpr Vec3(T aX, T aY, T aZ) : x{aX}, y{aY}, z{aZ} {}
     /**
      * @brief
-     *
+     * Vec3 constructor with one parameter
+     * @param value x, y and z will take this value
      */
     constexpr explicit Vec3(T value) : x{value}, y{value}, z{value} {}
 
     /**
      * @brief
-     *
+     * Return the negative vector
      * @return constexpr Vec3
      */
     constexpr Vec3 operator-() const noexcept { return Vec3{-x, -y, -z}; }
 
     /**
      * @brief
-     *
+     * Addition betwen two Vec3
      * @param rhs
      * @return constexpr Vec3&
      */
@@ -69,7 +78,7 @@ struct Vec3
 
     /**
      * @brief
-     *
+     * Substraction between two Vec3
      * @param rhs
      * @return constexpr Vec3&
      */
@@ -83,7 +92,7 @@ struct Vec3
 
     /**
      * @brief
-     *
+     * Multiplication between a Vec3 and a value
      * @param value
      * @return constexpr Vec3&
      */
@@ -97,7 +106,7 @@ struct Vec3
 
     /**
      * @brief
-     *
+     * Division between a Vec3 and a value
      * @param value
      * @return constexpr Vec3&
      */
@@ -105,7 +114,7 @@ struct Vec3
 
     /**
      * @brief
-     *
+     * Return the dot product of two Vec3
      * @param lhs
      * @param rhs
      * @return constexpr T
@@ -117,7 +126,7 @@ struct Vec3
 
     /**
      * @brief
-     *
+     * Return the cross product of two vectors
      * @param lhs
      * @param rhs
      * @return constexpr Vec3
@@ -129,19 +138,19 @@ struct Vec3
 
     /**
      * @brief
-     *
+     * Return the length squared of the Vec3
      * @return constexpr T
      */
     [[nodiscard]] constexpr T lengthSquared() const noexcept { return x * x + y * y + z * z; }
     /**
      * @brief
-     *
+     * Return the length of the Vec3
      * @return constexpr T
      */
     [[nodiscard]] constexpr T length() const noexcept { return static_cast<T>(std::sqrt(lengthSquared())); }
     /**
      * @brief
-     *
+     * Return the normalized version of the vector
      * @return constexpr Vec3
      */
     [[nodiscard]] constexpr Vec3 normalized() const noexcept { return *this / length(); }

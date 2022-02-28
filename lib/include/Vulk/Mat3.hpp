@@ -28,6 +28,10 @@
 
 namespace vulk {
 template<typename T>
+/**
+ * @brief
+ * The Mat3 structure that can be use for mathematical purpose
+ */
 struct Mat3
 {
     std::array<T, 9> m{
