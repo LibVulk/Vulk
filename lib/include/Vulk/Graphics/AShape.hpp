@@ -21,9 +21,9 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "Vulk/Color.hpp"
 #include "Vulk/Graphics/ADrawable.hpp"
 #include "Vulk/Objects.hpp"
-#include "Vulk/Color.hpp"
 
 namespace vulk {
 class AShape : public ADrawable
