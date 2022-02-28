@@ -1,12 +1,13 @@
 enable_testing()
 
 add_executable(
-	${PROJECT_NAME}-unit-tests
-	src/Vec2.cpp
-	src/Vec3.cpp
-	src/Run.cpp
-	src/Rect.cpp
-	src/Mat3.cpp
+        ${PROJECT_NAME}-unit-tests
+        src/Vec2.cpp
+        src/Vec3.cpp
+        src/Run.cpp
+        src/Rect.cpp
+        src/Mat3.cpp
+        src/Color.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}-unit-tests PUBLIC ${PROJECT_NAME})

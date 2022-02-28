@@ -20,15 +20,15 @@
 #include <Vulk/Vec2.hpp>
 #include <gtest/gtest.h>
 
-static constexpr vulk::Vec2 v{3, -4};
+static constexpr vulk::Vec2 v1{3, -4};
 static constexpr vulk::Vec2d v2{5.1, 7.3};
 static constexpr vulk::Vec2f v3{2.f, 10.f};
 static constexpr vulk::Vec2i v4{-5, -2};
 
 TEST(Vec2Tests, InitTests)
 {
-    EXPECT_EQ(v.x, 3);
-    EXPECT_EQ(v.y, -4);
+    EXPECT_EQ(v1.x, 3);
+    EXPECT_EQ(v1.y, -4);
     EXPECT_NEAR(v2.x, 5.1, 0.1);
     EXPECT_NEAR(v2.y, 7.3, 0.1);
     EXPECT_NEAR(v3.x, 2.f, 0.1);
@@ -39,7 +39,7 @@ TEST(Vec2Tests, InitTests)
 
 TEST(Vec2Tests, NegativeTests)
 {
-    auto nv = -v;
+    auto nv = -v1;
     auto nv2 = -v2;
     auto nv3 = -v3;
     auto nv4 = -v4;
@@ -56,7 +56,7 @@ TEST(Vec2Tests, NegativeTests)
 
 TEST(Vec2Tests, AdditionTests)
 {
-    auto av = v + vulk::Vec2{6, -1};
+    auto av = v1 + vulk::Vec2{6, -1};
     auto av2 = v2 + vulk::Vec2d{4.6, 3.6};
     auto av3 = v3 + vulk::Vec2f{2.4f, 10.3f};
     auto av4 = v4 + vulk::Vec2i{-3, -2};
@@ -73,7 +73,7 @@ TEST(Vec2Tests, AdditionTests)
 
 TEST(Vec2Tests, SubstractionTests)
 {
-    auto sv = v - vulk::Vec2{6, -1};
+    auto sv = v1 - vulk::Vec2{6, -1};
     auto sv2 = v2 - vulk::Vec2d{4.6, 3.5};
     auto sv3 = v3 - vulk::Vec2f{2.f, 11.f};
     auto sv4 = v4 - vulk::Vec2i{-3, -2};
@@ -90,7 +90,7 @@ TEST(Vec2Tests, SubstractionTests)
 
 TEST(Vec2Tests, MultiplicationTests)
 {
-    auto mv = v * 2;
+    auto mv = v1 * 2;
     auto mv2 = v2 * -5.0;
     auto mv3 = v3 * 3.f;
     auto mv4 = v4 * 10;
@@ -107,7 +107,7 @@ TEST(Vec2Tests, MultiplicationTests)
 
 TEST(Vec2Tests, DotTests)
 {
-    EXPECT_EQ(vulk::Vec2<int>::dot(v, v), 25);
+    EXPECT_EQ(vulk::Vec2<int>::dot(v1, v1), 25);
     EXPECT_NEAR(vulk::Vec2d::dot(v2, v2), 79.3, 0.1);
     EXPECT_NEAR(vulk::Vec2f::dot(v3, v3), 104.f, 0.1);
     EXPECT_EQ(vulk::Vec2i::dot(v4, v4), 29);
@@ -115,7 +115,7 @@ TEST(Vec2Tests, DotTests)
 
 TEST(Vec2Tests, CrossTests)
 {
-    EXPECT_EQ(vulk::Vec2<int>::cross(v, vulk::Vec2{-4, 3}), -7);
+    EXPECT_EQ(vulk::Vec2<int>::cross(v1, vulk::Vec2{-4, 3}), -7);
     EXPECT_NEAR(vulk::Vec2d::cross(v2, vulk::Vec2d{7.3, 5.1}), -27.28, 0.1);
     EXPECT_NEAR(vulk::Vec2f::cross(v3, vulk::Vec2f{10.f, 2.f}), -96.f, 0.1);
     EXPECT_EQ(vulk::Vec2i::cross(v4, vulk::Vec2i{-2, -5}), 21);
@@ -123,7 +123,7 @@ TEST(Vec2Tests, CrossTests)
 
 TEST(Vec2Tests, lengthSquaredTests)
 {
-    EXPECT_EQ(v.lengthSquared(), 25);
+    EXPECT_EQ(v1.lengthSquared(), 25);
     EXPECT_NEAR(v2.lengthSquared(), 79.3, 0.1);
     EXPECT_NEAR(v3.lengthSquared(), 104.f, 0.1);
     EXPECT_EQ(v4.lengthSquared(), 29);
@@ -131,7 +131,7 @@ TEST(Vec2Tests, lengthSquaredTests)
 
 TEST(Vec2Tests, lengthTests)
 {
-    EXPECT_EQ(v.length(), 5);
+    EXPECT_EQ(v1.length(), 5);
     EXPECT_NEAR(v2.length(), 8.9, 0.1);
     EXPECT_NEAR(v3.length(), 10.1f, 0.1);
     EXPECT_EQ(v4.length(), 5);
