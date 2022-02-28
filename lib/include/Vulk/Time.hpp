@@ -22,7 +22,18 @@
 #include <chrono>
 
 namespace vulk {
+/**
+ * Clock type alias
+ */
 using Clock = std::chrono::high_resolution_clock;
+
+/**
+ * Duration type alias
+ */
 using Duration = std::chrono::duration<float>;
+
+/**
+ * Time point type alias
+ */
 using TimePoint = decltype(Clock::now());
 }  // namespace vulk

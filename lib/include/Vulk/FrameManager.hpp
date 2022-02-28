@@ -28,21 +28,57 @@
 #include "Time.hpp"
 
 namespace vulk {
+/**
+ * Class that manages a window's framerate, delta time (or frame time) and other time/frame logics
+ */
 class FrameManager final
 {
 public:
+    /**
+     * OnSecond event callback signature
+     */
     using OnSecondCallback = std::function<void(const FrameManager& frameManager)>;
+
+    /**
+     * Static string buffer type for FPS counter as a string
+     */
     using FramerateStringBuffer = std::array<char, 16>;
 
     FrameManager();
 
+    /**
+     * Updates the frame manager. Call ONCE every frame. Already done in the Window class
+     */
     void update() noexcept;
 
+    /**
+     * Add an optional callback to be called once every second
+     * @param func Function callback to use. std::nullopt to reset
+     */
     void setOnSecondCallback(const OnSecondCallback& func) noexcept { m_onSecondCallback = func; }
 
+    /**
+     * Returns the frame time of the last update. Use this for framerate independent operations
+     * @return Frame time in seconds
+     */
     [[nodiscard]] auto getDeltaTime() const noexcept { return m_deltaTime; }
+
+    /**
+     * Returns the current framerate
+     * @return Frames per seconds unsigned integer
+     */
     [[nodiscard]] auto getFPS() const noexcept { return m_framerate; }
-    [[nodiscard]] FramerateStringBuffer getFramerateCString() const noexcept;
+
+    /**
+     * Returns the framerate as a string buffer
+     * @return Framerate string buffer
+     */
+    [[nodiscard]] FramerateStringBuffer getFramerateStringBuffer() const noexcept;
+
+    /**
+     * Returns the framerate as a std::string
+     * @return Framerate as a string "XXX fps"
+     */
     [[nodiscard]] std::string getFramerateString() const noexcept;
 
 private:

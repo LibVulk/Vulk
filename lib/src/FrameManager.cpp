@@ -52,7 +52,7 @@ void vulk::FrameManager::update() noexcept
 }
 
 // TODO: There is probably a more optimal way of doing this
-vulk::FrameManager::FramerateStringBuffer vulk::FrameManager::getFramerateCString() const noexcept
+vulk::FrameManager::FramerateStringBuffer vulk::FrameManager::getFramerateStringBuffer() const noexcept
 {
     FramerateStringBuffer buffer{};
 
@@ -63,7 +63,7 @@ vulk::FrameManager::FramerateStringBuffer vulk::FrameManager::getFramerateCStrin
 
 std::string vulk::FrameManager::getFramerateString() const noexcept
 {
-    return std::string{getFramerateCString().data()};
+    return std::string{getFramerateStringBuffer().data()};
 }
 
 std::ostream& operator<<(std::ostream& os, const vulk::FrameManager& frameManager)

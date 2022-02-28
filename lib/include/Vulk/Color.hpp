@@ -23,6 +23,9 @@
 #include <cstdint>
 
 namespace vulk {
+/**
+ * The color structure can be used to give a color to your objects, a tint to textures or any other color related stuff
+ */
 struct Color
 {
     uint8_t r{};
@@ -30,8 +33,24 @@ struct Color
     uint8_t b{};
     uint8_t a{};
 
+    /**
+     * Constructs a default color (Black transparent, 0x00000000)
+     */
     constexpr Color() noexcept = default;
+
+    /**
+     * Constructs a color using rgba components, [0;255]
+     * @param _r Red component
+     * @param _g Green component
+     * @param _b Blue component
+     * @param _a Alpha component (opacity)
+     */
     constexpr Color(uint8_t _r, uint8_t _g, uint8_t _b, uint8_t _a = 255) noexcept : r{_r}, g{_g}, b{_b}, a{_a} {}
+
+    /**
+     * Constructs a color from its hexadecimal value
+     * @param value Hexadecimal value, format 0xRRGGBBAA with RR=Red, GG=Green, BB=Blue and AA=Alpha
+     */
     constexpr explicit Color(uint32_t value) noexcept
     {
         constexpr uint32_t MASK = 0x000000FF;
@@ -52,6 +71,10 @@ struct Color
 
     constexpr auto operator<=>(const Color&) const noexcept = default;
 
+    /**
+     * Converts RGBA components to the integer value
+     * @return 32 unsigned bit integer value representing the color
+     */
     [[nodiscard]] constexpr uint32_t value() const noexcept
     {
         uint32_t value = r;
@@ -75,7 +98,7 @@ struct Color
     static Color Black;
     static Color White;
     static Color Grey;
-    static Color Transparent;
-    static Color CoolYellow;
+    static Color Transparent;  // Black with 0 opacity
+    static Color CoolYellow;   // Just a cool yellow I like :3
 };
 }  // namespace vulk
