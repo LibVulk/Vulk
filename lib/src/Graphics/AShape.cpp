@@ -28,13 +28,8 @@ vulk::AShape::AShape()
 
 vulk::AShape::~AShape()
 {
-    auto& vulkInstance = detail::ContextVulkan::getInstance();
-
-    vulkInstance.destroyBuffer(m_indexBuffer);
-    vulkInstance.destroyBuffer(m_vertexBuffer);
-    vulkInstance.freeBufferMem(m_indexMemory);
-    vulkInstance.freeBufferMem(m_vertexMemory);
-    vulkInstance.unregisterDrawable(*this);
+    resetBuffers();
+    detail::ContextVulkan::getInstance().unregisterDrawable(*this);
 }
 
 void vulk::AShape::makeBuffers()
@@ -43,4 +38,24 @@ void vulk::AShape::makeBuffers()
 
     vulkInstance.createBuffers(m_vertices, m_vertexBuffer, m_vertexMemory, vk::BufferUsageFlagBits::eVertexBuffer);
     vulkInstance.createBuffers(m_indices, m_indexBuffer, m_indexMemory, vk::BufferUsageFlagBits::eIndexBuffer);
+}
+
+void vulk::AShape::resetBuffers()
+{
+    auto& vulkInstance = detail::ContextVulkan::getInstance();
+
+    vulkInstance.destroyBuffer(m_indexBuffer);
+    vulkInstance.destroyBuffer(m_vertexBuffer);
+    vulkInstance.freeBufferMem(m_indexMemory);
+    vulkInstance.freeBufferMem(m_vertexMemory);
+}
+
+void vulk::AShape::setColor(vulk::Color color)
+{
+    resetBuffers();
+    for (auto& vertex : m_vertices)
+    {
+        vertex.color = color.to_glm_color();
+    }
+    makeBuffers();
 }

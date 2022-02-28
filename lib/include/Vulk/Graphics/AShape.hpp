@@ -23,6 +23,7 @@
 
 #include "Vulk/Graphics/ADrawable.hpp"
 #include "Vulk/Objects.hpp"
+#include "Vulk/Color.hpp"
 
 namespace vulk {
 class AShape : public ADrawable
@@ -31,6 +32,8 @@ public:
     AShape();
     ~AShape() override;
     explicit AShape(const glm::vec2& position) : ADrawable{position} {}
+
+    void setColor(Color color);
 
     [[nodiscard]] size_t getVertexCount() const noexcept { return m_vertices.size(); }
     [[nodiscard]] size_t getIndexCount() const noexcept { return m_indices.size(); }
@@ -59,6 +62,8 @@ protected:
     void makeBuffers();
 
 private:
+    void resetBuffers();
+
     vk::Buffer m_vertexBuffer{};
     vk::DeviceMemory m_vertexMemory{};
     vk::Buffer m_indexBuffer{};

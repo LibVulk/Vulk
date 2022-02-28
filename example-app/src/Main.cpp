@@ -17,7 +17,6 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include <Vulk/Contexts/ContextVulkan.hpp>
 #include <Vulk/Graphics/Rectangle.hpp>
 #include <Vulk/Graphics/Triangle.hpp>
 #include <Vulk/Window.hpp>
@@ -39,15 +38,15 @@ int main()
         win.setTitle(buffer);
     });
 
-    vulk::Triangle triangle{};
-    vulk::Rectangle rectangle{};
+    vulk::Rectangle obj{};
+
+    obj.setColor(vulk::Color::White);
 
     while (win.isOpen())
     {
         win.pollEvents();
 
-        triangle.draw();
-        rectangle.draw();
+        obj.draw();
         win.display();
     }
 
