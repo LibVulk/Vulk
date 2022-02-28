@@ -25,10 +25,10 @@ namespace vulk {
 class ADrawable
 {
 public:
-    ADrawable() = default;
+    ADrawable();
     explicit ADrawable(const glm::vec2& position) : m_position{position} {}
 
-    virtual ~ADrawable() = default;
+    virtual ~ADrawable();
 
     virtual void draw() const = 0;
 

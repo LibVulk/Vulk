@@ -19,6 +19,18 @@
 
 #include "Vulk/Graphics/ADrawable.hpp"
 
+#include "Vulk/Contexts/ContextVulkan.hpp"
+
+vulk::ADrawable::ADrawable()
+{
+    // detail::ContextVulkan::getInstance().registerDrawable(*this);
+}
+
+vulk::ADrawable::~ADrawable()
+{
+    // detail::ContextVulkan::getInstance().unregisterDrawable(*this);
+}
+
 void vulk::ADrawable::setScale(const glm::vec2& scale)
 {
     m_scale = scale;

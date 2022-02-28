@@ -29,6 +29,7 @@
 #include <string_view>
 
 #include "Vulk/Exceptions.hpp"
+#include "Vulk/Graphics/AShape.hpp"
 #include "Vulk/ScopedProfiler.hpp"
 #include "Vulk/Shader.hpp"
 #include "Vulk/Utils.hpp"
@@ -161,10 +162,10 @@ void vulk::detail::ContextVulkan::createInstance(GLFWwindow* windowHandle)
 
 void vulk::detail::ContextVulkan::draw()
 {
-    handleVulkanError(m_device.waitForFences(1, &m_frameSyncObjects[m_currentFrame].fence, true, s_noTimeout));
+    handleVulkanError(m_device.waitForFences(1, &m_frameSyncObjects[m_currentFrame].fence, true, NO_TIMEOUT));
 
     const auto& [result, imageIndex] =
-      m_device.acquireNextImageKHR(m_swapchain, s_noTimeout, m_frameSyncObjects[m_currentFrame].imageAvailable);
+      m_device.acquireNextImageKHR(m_swapchain, NO_TIMEOUT, m_frameSyncObjects[m_currentFrame].imageAvailable);
 
     if (result == vk::Result::eErrorOutOfDateKHR)
     {
@@ -221,13 +222,29 @@ void vulk::detail::ContextVulkan::draw()
 void vulk::detail::ContextVulkan::destroyBuffer(vk::Buffer buffer)
 {
     if (m_device)
+    {
+        m_device.waitIdle();
         m_device.destroy(buffer);
+    }
 }
 
 void vulk::detail::ContextVulkan::freeBufferMem(vk::DeviceMemory deviceMemory)
 {
     if (m_device)
+    {
+        m_device.waitIdle();
         m_device.freeMemory(deviceMemory);
+    }
+}
+
+void vulk::detail::ContextVulkan::registerDrawable(AShape& drawable)
+{
+    m_shapes.push_back(&drawable);
+}
+
+void vulk::detail::ContextVulkan::unregisterDrawable(AShape& drawable)
+{
+    m_shapes.erase(std::remove(m_shapes.begin(), m_shapes.end(), &drawable), m_shapes.end());
 }
 
 [[maybe_unused]] void vulk::detail::ContextVulkan::printAvailableValidationLayers()
@@ -609,7 +626,7 @@ void vulk::detail::ContextVulkan::createGraphicsPipeline()
     rasterizer.polygonMode = vk::PolygonMode::eFill;
     rasterizer.lineWidth = 1;
     rasterizer.cullMode = vk::CullModeFlagBits::eBack;
-    rasterizer.frontFace = vk::FrontFace::eCounterClockwise;
+    rasterizer.frontFace = vk::FrontFace::eClockwise;
     rasterizer.depthBiasEnable = false;
 
     vk::PipelineMultisampleStateCreateInfo multisampling{};
@@ -811,17 +828,39 @@ void vulk::detail::ContextVulkan::recordCommandBuffer(vk::CommandBuffer& command
     renderPassBeginInfo.clearValueCount = 1;
     renderPassBeginInfo.pClearValues = &clearValue;
 
-    //    std::array vertexBuffers{m_vertexBuffer};
-    //    std::array offsets{vk::DeviceSize{0}};
-    //    static_assert(vertexBuffers.size() == offsets.size());
+    // TODO: *Highly* inefficient, will have to do until a proper renderer system is written.
+    uint32_t vertexCount{};
+    std::vector<vk::Buffer> vertexBuffers{};
+    std::vector<vk::Buffer> indexBuffers{};
+    std::vector<vk::DeviceSize> offsets{};
+    vertexBuffers.reserve(m_shapes.size());
+    indexBuffers.reserve(m_shapes.size());
+    offsets.resize(m_shapes.size(), vk::DeviceSize{0});
+
+    for (const auto* drawable : m_shapes)
+    {
+        vertexBuffers.push_back(drawable->getVertexBuffer());
+        indexBuffers.push_back(drawable->getIndexBuffer());
+        vertexCount += static_cast<uint32_t>(drawable->getVertexCount());
+    }
 
     commandBuffer.beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline);
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipelineLayout, 0, 1,
                                      &m_descriptorSets[m_currentFrame], 0, nullptr);
+
+    int32_t vertexOffset{};
+    for (const auto& m_shape : m_shapes)
+    {
+        commandBuffer.bindVertexBuffers(vertexOffset, static_cast<uint32_t>(vertexBuffers.size()), vertexBuffers.data(),
+                                        offsets.data());
+        commandBuffer.bindIndexBuffer(m_shape->getIndexBuffer(), 0, vk::IndexType::eUint32);
+        commandBuffer.drawIndexed(static_cast<uint32_t>(m_shape->getIndexCount()), 1, 0, vertexOffset, 0);
+        vertexOffset += static_cast<int32_t>(m_shape->getVertexCount());
+    }
     //    commandBuffer.bindVertexBuffers(0, static_cast<uint32_t>(vertexBuffers.size()), vertexBuffers.data(),
     //                                    offsets.data());
-    //    commandBuffer.bindIndexBuffer(m_indexBuffer, 0, getIndexType<decltype(s_indices)::value_type>());
+    //    commandBuffer.bindIndexBuffer(m_indexBuffer, 0, vk::IndexType::eUint32);
     //    commandBuffer.drawIndexed(static_cast<uint32_t>(s_indices.size()), 1, 0, 0, 0);
     commandBuffer.endRenderPass();
     commandBuffer.end();

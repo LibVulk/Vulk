@@ -21,12 +21,26 @@
 
 #include "Vulk/Contexts/ContextVulkan.hpp"
 
+vulk::AShape::AShape()
+{
+    detail::ContextVulkan::getInstance().registerDrawable(*this);
+}
+
 vulk::AShape::~AShape()
 {
     auto& vulkInstance = detail::ContextVulkan::getInstance();
 
     vulkInstance.destroyBuffer(m_indexBuffer);
     vulkInstance.destroyBuffer(m_vertexBuffer);
-    vulkInstance.freeBufferMem(m_indexBufferMemory);
-    vulkInstance.freeBufferMem(m_vertexBufferMemory);
+    vulkInstance.freeBufferMem(m_indexMemory);
+    vulkInstance.freeBufferMem(m_vertexMemory);
+    vulkInstance.unregisterDrawable(*this);
+}
+
+void vulk::AShape::makeBuffers()
+{
+    auto& vulkInstance = detail::ContextVulkan::getInstance();
+
+    vulkInstance.createBuffers(m_vertices, m_vertexBuffer, m_vertexMemory, vk::BufferUsageFlagBits::eVertexBuffer);
+    vulkInstance.createBuffers(m_indices, m_indexBuffer, m_indexMemory, vk::BufferUsageFlagBits::eIndexBuffer);
 }

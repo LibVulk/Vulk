@@ -18,3 +18,12 @@
  */
 
 #include "Vulk/Graphics/Triangle.hpp"
+
+vulk::Triangle::Triangle()
+{
+    setVertices(std::array{Vertex{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},  //
+                           Vertex{{0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}},   //
+                           Vertex{{-0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}}});
+    setIndices(std::array<uint32_t, 3>{0, 1, 2});
+    makeBuffers();
+}

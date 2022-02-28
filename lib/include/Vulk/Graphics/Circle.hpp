@@ -24,5 +24,7 @@
 namespace vulk {
 class Circle : public AShape
 {
+public:
+    void draw() const override {}
 };
 }  // namespace vulk

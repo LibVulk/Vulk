@@ -18,6 +18,8 @@
  */
 
 #include <Vulk/Contexts/ContextVulkan.hpp>
+#include <Vulk/Graphics/Rectangle.hpp>
+#include <Vulk/Graphics/Triangle.hpp>
 #include <Vulk/Window.hpp>
 
 #include <iostream>
@@ -37,10 +39,15 @@ int main()
         win.setTitle(buffer);
     });
 
+    vulk::Triangle triangle{};
+    vulk::Rectangle rectangle{};
+
     while (win.isOpen())
     {
         win.pollEvents();
 
+        triangle.draw();
+        rectangle.draw();
         win.display();
     }
 

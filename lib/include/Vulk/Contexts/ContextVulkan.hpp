@@ -25,6 +25,9 @@
 #include <memory>
 #include <optional>
 
+#include "Vulk/Exceptions.hpp"
+#include "Vulk/Graphics/ADrawable.hpp"
+#include "Vulk/Graphics/AShape.hpp"
 #include "Vulk/Macros.hpp"
 #include "Vulk/Objects.hpp"
 #include "Vulk/Window.hpp"
@@ -37,10 +40,40 @@ public:
 
     void draw();
 
-    void createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
-                      vk::Buffer& outBuffer, vk::DeviceMemory& outDeviceMemory);
+    template<typename T>
+    void createBuffers(const std::vector<T>& vertices, vk::Buffer& outBuffer, vk::DeviceMemory& outDeviceMemory,
+                       vk::BufferUsageFlagBits flags)
+    {
+        const size_t bufferSize = sizeof(std::remove_cvref_t<decltype(vertices)>::value_type) * vertices.size();
+
+        vk::Buffer stagingBuffer;
+        vk::DeviceMemory stagingBufferMemory;
+
+        createBuffer(bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
+                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+                     stagingBuffer, stagingBufferMemory);
+
+        void* data;
+        handleVulkanError(m_device.mapMemory(stagingBufferMemory, 0, bufferSize, {}, &data));
+        std::memcpy(data, vertices.data(), bufferSize);
+        m_device.unmapMemory(stagingBufferMemory);
+
+        createBuffer(bufferSize, vk::BufferUsageFlagBits::eTransferDst | flags,
+                     vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, outBuffer,
+                     outDeviceMemory);
+
+        copyBuffer(stagingBuffer, outBuffer, bufferSize);
+
+        // TODO: vk::raii
+        m_device.destroy(stagingBuffer);
+        m_device.freeMemory(stagingBufferMemory);
+    }
+
     void destroyBuffer(vk::Buffer buffer);
     void freeBufferMem(vk::DeviceMemory deviceMemory);
+
+    void registerDrawable(AShape& drawable);
+    void unregisterDrawable(AShape& drawable);
 
     // TODO: should not be public, remove once events are implemented
     void setFrameBufferResized(bool value) noexcept { m_frameBufferResized = value; }
@@ -142,6 +175,9 @@ private:
     void recreateSwapChain();
     void copyBuffer(const vk::Buffer& sourceBuffer, vk::Buffer& destinationBuffer, vk::DeviceSize size);
 
+    void createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
+                      vk::Buffer& outBuffer, vk::DeviceMemory& outDeviceMemory);
+
     void cleanupSwapchain(vk::SwapchainKHR& swapchain);
     void cleanupSwapchainSubObjects();
 
@@ -205,6 +241,8 @@ private:
     vk::DescriptorPool m_descriptorPool{};
     std::vector<vk::DescriptorSet> m_descriptorSets{};
 
+    std::vector<vulk::AShape*> m_shapes{};
+
     // TODO: May be better to store in the FrameManager
     size_t m_currentFrame{};
     static const size_t s_maxFramesInFlight;
@@ -212,27 +250,7 @@ private:
 
     bool m_frameBufferResized{false};
 
-    template<typename T>
-    static constexpr vk::IndexType getIndexType()
-    {
-        // could be a concept with C++20
-        static_assert(std::is_same_v<T, uint16_t> || std::is_same_v<T, uint32_t>);
-
-        if (std::is_same_v<T, uint16_t>)
-            return vk::IndexType::eUint16;
-        if (std::is_same_v<T, uint32_t>)
-            return vk::IndexType::eUint32;
-
-        assert(0);
-        return vk::IndexType::eNoneKHR;
-    }
-
-    static constexpr auto s_noTimeout = std::numeric_limits<uint64_t>::max();
-    static constexpr std::array s_vertices{Vertex{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},  //
-                                           Vertex{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},   //
-                                           Vertex{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},    //
-                                           Vertex{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}};
-    static constexpr std::array<uint16_t, 6> s_indices{0, 1, 2, 2, 3, 0};
+    static constexpr auto NO_TIMEOUT = std::numeric_limits<uint64_t>::max();
 
     static std::unique_ptr<ContextVulkan> s_instance;
 };

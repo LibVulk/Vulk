@@ -24,5 +24,9 @@
 namespace vulk {
 class Triangle : public AShape
 {
+public:
+    Triangle();
+
+    void draw() const override {}
 };
 }  // namespace vulk
