@@ -23,6 +23,7 @@ add_library(
         src/Graphics/Triangle.cpp include/Vulk/Graphics/Triangle.hpp
         src/Graphics/Rectangle.cpp include/Vulk/Graphics/Rectangle.hpp
         src/Graphics/Circle.cpp include/Vulk/Graphics/Circle.hpp
+        src/Color.cpp include/Vulk/Color.hpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE include)
