@@ -29,23 +29,24 @@
 #include <string_view>
 
 #include "Vulk/Exceptions.hpp"
+#include "Vulk/Graphics/AShape.hpp"
 #include "Vulk/ScopedProfiler.hpp"
 #include "Vulk/Shader.hpp"
 #include "Vulk/Utils.hpp"
 
-const size_t vulk::ContextVulkan::s_maxFramesInFlight{2};
-std::unique_ptr<vulk::ContextVulkan> vulk::ContextVulkan::s_instance{nullptr};
+const size_t vulk::detail::ContextVulkan::s_maxFramesInFlight{2};
+std::unique_ptr<vulk::detail::ContextVulkan> vulk::detail::ContextVulkan::s_instance{nullptr};
 
 // TODO: This should be in the Window class and then fire an event, once those are implemented.
 static void framebufferResizeCallback(GLFWwindow* windowHandle, int, int)
 {
-    auto* context = reinterpret_cast<vulk::ContextVulkan*>(glfwGetWindowUserPointer(windowHandle));
+    auto* context = reinterpret_cast<vulk::detail::ContextVulkan*>(glfwGetWindowUserPointer(windowHandle));
     assert(context);
 
     context->setFrameBufferResized(true);
 }
 
-vulk::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle) : m_windowHandle{windowHandle}
+vulk::detail::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle) : m_windowHandle{windowHandle}
 {
     VULK_SCOPED_PROFILER("ContextVulkan::ContextVulkan()");
 
@@ -55,7 +56,7 @@ vulk::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle) : m_windowHandle{wi
     glfwSetFramebufferSizeCallback(m_windowHandle, &framebufferResizeCallback);
 
 #if VULK_DEBUG
-    printAvailableValidationLayers();
+    // printAvailableValidationLayers();
 #endif
 
     createInstance();
@@ -69,8 +70,6 @@ vulk::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle) : m_windowHandle{wi
     createGraphicsPipeline();
     createFrameBuffers();
     createCommandPool();
-    createVertexBuffer();
-    createIndexBuffer();
     createUniformBuffers();
     createDescriptorPool();
     createDescriptorSets();
@@ -82,7 +81,7 @@ vulk::ContextVulkan::ContextVulkan(GLFWwindow* windowHandle) : m_windowHandle{wi
 #endif
 }
 
-vulk::ContextVulkan::~ContextVulkan()
+vulk::detail::ContextVulkan::~ContextVulkan()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::~ContextVulkan()");
 
@@ -107,12 +106,6 @@ vulk::ContextVulkan::~ContextVulkan()
             frameSemaphore.destroy(m_device);
 
         m_device.destroy(m_commandPool);
-
-        m_device.destroy(m_indexBuffer);
-        m_device.freeMemory(m_indexBufferMemory);
-
-        m_device.destroy(m_vertexBuffer);
-        m_device.freeMemory(m_vertexBufferMemory);
     }
 
     m_instance.destroy(m_surface);
@@ -120,7 +113,7 @@ vulk::ContextVulkan::~ContextVulkan()
     m_instance.destroy();
 }
 
-void vulk::ContextVulkan::cleanupSwapchain(vk::SwapchainKHR& swapchain)
+void vulk::detail::ContextVulkan::cleanupSwapchain(vk::SwapchainKHR& swapchain)
 {
     if (!m_device)
         return;
@@ -142,7 +135,7 @@ void vulk::ContextVulkan::cleanupSwapchain(vk::SwapchainKHR& swapchain)
     swapchain = nullptr;
 }
 
-void vulk::ContextVulkan::cleanupSwapchainSubObjects()
+void vulk::detail::ContextVulkan::cleanupSwapchainSubObjects()
 {
     if (!m_device)
         return;
@@ -156,7 +149,7 @@ void vulk::ContextVulkan::cleanupSwapchainSubObjects()
     m_swapchainImageViews.clear();
 }
 
-void vulk::ContextVulkan::createInstance(GLFWwindow* windowHandle)
+void vulk::detail::ContextVulkan::createInstance(GLFWwindow* windowHandle)
 {
     assert(windowHandle);
 
@@ -167,12 +160,12 @@ void vulk::ContextVulkan::createInstance(GLFWwindow* windowHandle)
     assert(s_instance);
 }
 
-void vulk::ContextVulkan::draw()
+void vulk::detail::ContextVulkan::draw()
 {
-    handleVulkanError(m_device.waitForFences(1, &m_frameSyncObjects[m_currentFrame].fence, true, s_noTimeout));
+    handleVulkanError(m_device.waitForFences(1, &m_frameSyncObjects[m_currentFrame].fence, true, NO_TIMEOUT));
 
     const auto& [result, imageIndex] =
-      m_device.acquireNextImageKHR(m_swapchain, s_noTimeout, m_frameSyncObjects[m_currentFrame].imageAvailable);
+      m_device.acquireNextImageKHR(m_swapchain, NO_TIMEOUT, m_frameSyncObjects[m_currentFrame].imageAvailable);
 
     if (result == vk::Result::eErrorOutOfDateKHR)
     {
@@ -226,7 +219,35 @@ void vulk::ContextVulkan::draw()
     m_currentFrame = (m_currentFrame + 1) % s_maxFramesInFlight;
 }
 
-[[maybe_unused]] void vulk::ContextVulkan::printAvailableValidationLayers()
+void vulk::detail::ContextVulkan::destroyBuffer(vk::Buffer buffer)
+{
+    if (m_device)
+    {
+        m_device.waitIdle();
+        m_device.destroy(buffer);
+    }
+}
+
+void vulk::detail::ContextVulkan::freeBufferMem(vk::DeviceMemory deviceMemory)
+{
+    if (m_device)
+    {
+        m_device.waitIdle();
+        m_device.freeMemory(deviceMemory);
+    }
+}
+
+void vulk::detail::ContextVulkan::registerDrawable(AShape& drawable)
+{
+    m_shapes.push_back(&drawable);
+}
+
+void vulk::detail::ContextVulkan::unregisterDrawable(AShape& drawable)
+{
+    m_shapes.erase(std::remove(m_shapes.begin(), m_shapes.end(), &drawable), m_shapes.end());
+}
+
+[[maybe_unused]] void vulk::detail::ContextVulkan::printAvailableValidationLayers()
 {
     std::cout << "Available Layers:\n";
 
@@ -237,7 +258,7 @@ void vulk::ContextVulkan::draw()
     std::cout.flush();
 }
 
-std::vector<const char*> vulk::ContextVulkan::getSupportedValidationLayers()
+std::vector<const char*> vulk::detail::ContextVulkan::getSupportedValidationLayers()
 {
     const auto& availableLayers = vk::enumerateInstanceLayerProperties();
     std::vector<const char*> supported{};
@@ -266,7 +287,7 @@ std::vector<const char*> vulk::ContextVulkan::getSupportedValidationLayers()
     return supported;
 }
 
-void vulk::ContextVulkan::createInstance()
+void vulk::detail::ContextVulkan::createInstance()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createInstance()");
 
@@ -298,7 +319,7 @@ void vulk::ContextVulkan::createInstance()
     handleVulkanError(vk::createInstance(&createInfo, nullptr, &m_instance));
 }
 
-void vulk::ContextVulkan::createSurface()
+void vulk::detail::ContextVulkan::createSurface()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createSurface()");
 
@@ -309,7 +330,7 @@ void vulk::ContextVulkan::createSurface()
     m_surface = surface;
 }
 
-void vulk::ContextVulkan::pickPhysicalDevice()
+void vulk::detail::ContextVulkan::pickPhysicalDevice()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::pickPhysicalDevice()");
 
@@ -339,7 +360,7 @@ void vulk::ContextVulkan::pickPhysicalDevice()
         throw VulkanException("Failed to find an appropriate GPU");
 }
 
-void vulk::ContextVulkan::createLogicalDevice()
+void vulk::detail::ContextVulkan::createLogicalDevice()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createLogicalDevice()");
 
@@ -384,7 +405,7 @@ void vulk::ContextVulkan::createLogicalDevice()
         throw VulkanException("Failed to retrieve present queue");
 }
 
-void vulk::ContextVulkan::recreateSwapChain()
+void vulk::detail::ContextVulkan::recreateSwapChain()
 {
     {
         int width, height;
@@ -415,7 +436,7 @@ void vulk::ContextVulkan::recreateSwapChain()
     createCommandBuffers();
 }
 
-void vulk::ContextVulkan::createSwapChain()
+void vulk::detail::ContextVulkan::createSwapChain()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createSwapChain()");
 
@@ -471,7 +492,7 @@ void vulk::ContextVulkan::createSwapChain()
     m_swapchainFormat = m_surfaceFormat.format;
 }
 
-void vulk::ContextVulkan::createImageViews()
+void vulk::detail::ContextVulkan::createImageViews()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createImageViews()");
 
@@ -499,7 +520,7 @@ void vulk::ContextVulkan::createImageViews()
     }
 }
 
-void vulk::ContextVulkan::createRenderPass()
+void vulk::detail::ContextVulkan::createRenderPass()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createRenderPass()");
 
@@ -542,7 +563,7 @@ void vulk::ContextVulkan::createRenderPass()
     assert(m_renderPass);
 }
 
-void vulk::ContextVulkan::createDescriptorSetLayout()
+void vulk::detail::ContextVulkan::createDescriptorSetLayout()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createDescriptorSetLayout()");
 
@@ -559,7 +580,7 @@ void vulk::ContextVulkan::createDescriptorSetLayout()
     handleVulkanError(m_device.createDescriptorSetLayout(&createInfo, nullptr, &m_descriptorSetLayout));
 }
 
-void vulk::ContextVulkan::createGraphicsPipeline()
+void vulk::detail::ContextVulkan::createGraphicsPipeline()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createGraphicsPipeline()");
 
@@ -605,7 +626,7 @@ void vulk::ContextVulkan::createGraphicsPipeline()
     rasterizer.polygonMode = vk::PolygonMode::eFill;
     rasterizer.lineWidth = 1;
     rasterizer.cullMode = vk::CullModeFlagBits::eBack;
-    rasterizer.frontFace = vk::FrontFace::eCounterClockwise;
+    rasterizer.frontFace = vk::FrontFace::eClockwise;
     rasterizer.depthBiasEnable = false;
 
     vk::PipelineMultisampleStateCreateInfo multisampling{};
@@ -655,7 +676,7 @@ void vulk::ContextVulkan::createGraphicsPipeline()
     handleVulkanError(m_device.createGraphicsPipelines(nullptr, 1, &pipelineInfo, nullptr, &m_pipeline));
 }
 
-void vulk::ContextVulkan::createFrameBuffers()
+void vulk::detail::ContextVulkan::createFrameBuffers()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createFrameBuffers()");
 
@@ -681,7 +702,7 @@ void vulk::ContextVulkan::createFrameBuffers()
     }
 }
 
-void vulk::ContextVulkan::createCommandPool()
+void vulk::detail::ContextVulkan::createCommandPool()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createCommandPool()");
 
@@ -692,61 +713,7 @@ void vulk::ContextVulkan::createCommandPool()
     handleVulkanError(m_device.createCommandPool(&commandPoolCreateInfo, nullptr, &m_commandPool));
 }
 
-void vulk::ContextVulkan::createVertexBuffer()
-{
-    static constexpr vk::DeviceSize BufferSize = sizeof(decltype(s_vertices)::value_type) * s_vertices.size();
-
-    vk::Buffer stagingBuffer;
-    vk::DeviceMemory stagingBufferMemory;
-
-    createBuffer(BufferSize, vk::BufferUsageFlagBits::eTransferSrc,
-                 vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingBuffer,
-                 stagingBufferMemory);
-
-    void* data;
-    handleVulkanError(m_device.mapMemory(stagingBufferMemory, 0, BufferSize, {}, &data));
-    std::memcpy(data, s_vertices.data(), BufferSize);
-    m_device.unmapMemory(stagingBufferMemory);
-
-    createBuffer(BufferSize, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer,
-                 vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_vertexBuffer,
-                 m_vertexBufferMemory);
-
-    copyBuffer(stagingBuffer, m_vertexBuffer, BufferSize);
-
-    // TODO: vk::raii
-    m_device.destroy(stagingBuffer);
-    m_device.freeMemory(stagingBufferMemory);
-}
-
-void vulk::ContextVulkan::createIndexBuffer()
-{
-    static constexpr vk::DeviceSize BufferSize = sizeof(decltype(s_indices)::value_type) * s_indices.size();
-
-    vk::Buffer stagingBuffer;
-    vk::DeviceMemory stagingBufferMemory;
-
-    createBuffer(BufferSize, vk::BufferUsageFlagBits::eTransferSrc,
-                 vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingBuffer,
-                 stagingBufferMemory);
-
-    void* data;
-    handleVulkanError(m_device.mapMemory(stagingBufferMemory, 0, BufferSize, {}, &data));
-    std::memcpy(data, s_indices.data(), BufferSize);
-    m_device.unmapMemory(stagingBufferMemory);
-
-    createBuffer(BufferSize, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer,
-                 vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_indexBuffer,
-                 m_indexBufferMemory);
-
-    copyBuffer(stagingBuffer, m_indexBuffer, BufferSize);
-
-    // TODO: vk::raii
-    m_device.destroy(stagingBuffer);
-    m_device.freeMemory(stagingBufferMemory);
-}
-
-void vulk::ContextVulkan::createUniformBuffers()
+void vulk::detail::ContextVulkan::createUniformBuffers()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createUniformBuffers()");
 
@@ -763,7 +730,7 @@ void vulk::ContextVulkan::createUniformBuffers()
     }
 }
 
-void vulk::ContextVulkan::createDescriptorPool()
+void vulk::detail::ContextVulkan::createDescriptorPool()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createDescriptorPool()");
 
@@ -778,7 +745,7 @@ void vulk::ContextVulkan::createDescriptorPool()
     handleVulkanError(m_device.createDescriptorPool(&createInfo, nullptr, &m_descriptorPool));
 }
 
-void vulk::ContextVulkan::createDescriptorSets()
+void vulk::detail::ContextVulkan::createDescriptorSets()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createDescriptorSets()");
 
@@ -810,7 +777,7 @@ void vulk::ContextVulkan::createDescriptorSets()
     }
 }
 
-void vulk::ContextVulkan::createCommandBuffers()
+void vulk::detail::ContextVulkan::createCommandBuffers()
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createCommandBuffers()");
 
@@ -824,7 +791,7 @@ void vulk::ContextVulkan::createCommandBuffers()
     handleVulkanError(m_device.allocateCommandBuffers(&allocateInfo, m_commandBuffers.data()));
 }
 
-void vulk::ContextVulkan::createSyncObject()
+void vulk::detail::ContextVulkan::createSyncObject()
 {
     vk::SemaphoreCreateInfo semaphoreInfo{};
     vk::FenceCreateInfo fenceInfo{};
@@ -842,7 +809,7 @@ void vulk::ContextVulkan::createSyncObject()
     }
 }
 
-void vulk::ContextVulkan::recordCommandBuffer(vk::CommandBuffer& commandBuffer, uint32_t imageIndex)
+void vulk::detail::ContextVulkan::recordCommandBuffer(vk::CommandBuffer& commandBuffer, uint32_t imageIndex)
 {
     vk::CommandBufferBeginInfo beginInfo{};
     // beginInfo.flags = vk::CommandBufferUsageFlagBits::...;
@@ -861,23 +828,46 @@ void vulk::ContextVulkan::recordCommandBuffer(vk::CommandBuffer& commandBuffer, 
     renderPassBeginInfo.clearValueCount = 1;
     renderPassBeginInfo.pClearValues = &clearValue;
 
-    std::array vertexBuffers{m_vertexBuffer};
-    std::array offsets{vk::DeviceSize{0}};
-    static_assert(vertexBuffers.size() == offsets.size());
+    // TODO: *Highly* inefficient, will have to do until a proper renderer system is written.
+    uint32_t vertexCount{};
+    std::vector<vk::Buffer> vertexBuffers{};
+    std::vector<vk::Buffer> indexBuffers{};
+    std::vector<vk::DeviceSize> offsets{};
+    vertexBuffers.reserve(m_shapes.size());
+    indexBuffers.reserve(m_shapes.size());
+    offsets.resize(m_shapes.size(), vk::DeviceSize{0});
+
+    for (const auto* drawable : m_shapes)
+    {
+        vertexBuffers.push_back(drawable->getVertexBuffer());
+        indexBuffers.push_back(drawable->getIndexBuffer());
+        vertexCount += static_cast<uint32_t>(drawable->getVertexCount());
+    }
 
     commandBuffer.beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline);
-    commandBuffer.bindVertexBuffers(0, static_cast<uint32_t>(vertexBuffers.size()), vertexBuffers.data(),
-                                    offsets.data());
-    commandBuffer.bindIndexBuffer(m_indexBuffer, 0, getIndexType<decltype(s_indices)::value_type>());
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipelineLayout, 0, 1,
                                      &m_descriptorSets[m_currentFrame], 0, nullptr);
-    commandBuffer.drawIndexed(static_cast<uint32_t>(s_indices.size()), 1, 0, 0, 0);
+
+    uint32_t vertexOffset{};
+    for (const auto& m_shape : m_shapes)
+    {
+        commandBuffer.bindVertexBuffers(vertexOffset, static_cast<uint32_t>(vertexBuffers.size()), vertexBuffers.data(),
+                                        offsets.data());
+        commandBuffer.bindIndexBuffer(m_shape->getIndexBuffer(), 0, vk::IndexType::eUint32);
+        commandBuffer.drawIndexed(static_cast<uint32_t>(m_shape->getIndexCount()), 1, 0,
+                                  static_cast<int32_t>(vertexOffset), 0);
+        vertexOffset += static_cast<uint32_t>(m_shape->getVertexCount());
+    }
+    //    commandBuffer.bindVertexBuffers(0, static_cast<uint32_t>(vertexBuffers.size()), vertexBuffers.data(),
+    //                                    offsets.data());
+    //    commandBuffer.bindIndexBuffer(m_indexBuffer, 0, vk::IndexType::eUint32);
+    //    commandBuffer.drawIndexed(static_cast<uint32_t>(s_indices.size()), 1, 0, 0, 0);
     commandBuffer.endRenderPass();
     commandBuffer.end();
 }
 
-void vulk::ContextVulkan::chooseSwapSurfaceFormat()
+void vulk::detail::ContextVulkan::chooseSwapSurfaceFormat()
 {
     assert(!m_swapchainSupport.formats.empty());
 
@@ -896,7 +886,7 @@ void vulk::ContextVulkan::chooseSwapSurfaceFormat()
     m_surfaceFormat = m_swapchainSupport.formats[0];
 }
 
-void vulk::ContextVulkan::chooseSwapPresentMode()
+void vulk::detail::ContextVulkan::chooseSwapPresentMode()
 {
     for (const auto& presentMode : PRESENT_MODES_PREFERRED)
     {
@@ -914,7 +904,7 @@ void vulk::ContextVulkan::chooseSwapPresentMode()
     throw VulkanException("No present mode available.");
 }
 
-void vulk::ContextVulkan::chooseSwapExtent()
+void vulk::detail::ContextVulkan::chooseSwapExtent()
 {
     const auto& caps = m_swapchainSupport.capabilities;
 
@@ -933,7 +923,7 @@ void vulk::ContextVulkan::chooseSwapExtent()
     }
 }
 
-void vulk::ContextVulkan::updateUniformBuffer(uint32_t currentImage)
+void vulk::detail::ContextVulkan::updateUniformBuffer(uint32_t currentImage)
 {
     static auto startTime = Clock::now();
     auto currentTime = Clock::now();
@@ -952,9 +942,9 @@ void vulk::ContextVulkan::updateUniformBuffer(uint32_t currentImage)
     m_device.unmapMemory(m_uniformBuffersMemory[currentImage]);
 }
 
-void vulk::ContextVulkan::createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage,
-                                       vk::MemoryPropertyFlags properties, vk::Buffer& outBuffer,
-                                       vk::DeviceMemory& outDeviceMemory)
+void vulk::detail::ContextVulkan::createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage,
+                                               vk::MemoryPropertyFlags properties, vk::Buffer& outBuffer,
+                                               vk::DeviceMemory& outDeviceMemory)
 {
     VULK_SCOPED_PROFILER("ContextVulkan::createBuffer()");
 
@@ -974,7 +964,8 @@ void vulk::ContextVulkan::createBuffer(vk::DeviceSize size, vk::BufferUsageFlags
     m_device.bindBufferMemory(outBuffer, outDeviceMemory, 0);
 }
 
-void vulk::ContextVulkan::copyBuffer(const vk::Buffer& sourceBuffer, vk::Buffer& destinationBuffer, vk::DeviceSize size)
+void vulk::detail::ContextVulkan::copyBuffer(const vk::Buffer& sourceBuffer, vk::Buffer& destinationBuffer,
+                                             vk::DeviceSize size)
 {
     VULK_SCOPED_PROFILER("ContextVulkan::copyBuffer()");
 
@@ -1008,7 +999,7 @@ void vulk::ContextVulkan::copyBuffer(const vk::Buffer& sourceBuffer, vk::Buffer&
     m_device.freeCommandBuffers(m_commandPool, 1, &commandBuffer);
 }
 
-bool vulk::ContextVulkan::verifyExtensionsSupport(const vk::PhysicalDevice& device)
+bool vulk::detail::ContextVulkan::verifyExtensionsSupport(const vk::PhysicalDevice& device)
 {
     VULK_SCOPED_PROFILER("ContextVulkan::verifyExtensionsSupport()");
 
@@ -1030,8 +1021,8 @@ bool vulk::ContextVulkan::verifyExtensionsSupport(const vk::PhysicalDevice& devi
     return allValid;
 }
 
-vulk::ContextVulkan::QueueFamilyEntry
-vulk::ContextVulkan::findQueueFamilies(const vk::PhysicalDevice& physicalDevice) const noexcept
+vulk::detail::ContextVulkan::QueueFamilyEntry
+vulk::detail::ContextVulkan::findQueueFamilies(const vk::PhysicalDevice& physicalDevice) const noexcept
 {
     VULK_SCOPED_PROFILER("ContextVulkan::findQueueFamilies()");
 
@@ -1056,7 +1047,7 @@ vulk::ContextVulkan::findQueueFamilies(const vk::PhysicalDevice& physicalDevice)
     return std::make_pair(std::move(queueFamilies), indices);
 }
 
-uint32_t vulk::ContextVulkan::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) const
+uint32_t vulk::detail::ContextVulkan::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) const
 {
     vk::PhysicalDeviceMemoryProperties memoryProperties{m_physicalDevice.getMemoryProperties()};
 
@@ -1071,8 +1062,8 @@ uint32_t vulk::ContextVulkan::findMemoryType(uint32_t typeFilter, vk::MemoryProp
     throw VulkanException("Could not find a suitable memory type");
 }
 
-vulk::ContextVulkan::SwapChainSupportDetails
-vulk::ContextVulkan::querySwapChainSupport(const vk::PhysicalDevice& device) const noexcept
+vulk::detail::ContextVulkan::SwapChainSupportDetails
+vulk::detail::ContextVulkan::querySwapChainSupport(const vk::PhysicalDevice& device) const noexcept
 {
     SwapChainSupportDetails details{device.getSurfaceCapabilitiesKHR(m_surface),  //
                                     device.getSurfaceFormatsKHR(m_surface),       //
@@ -1081,7 +1072,7 @@ vulk::ContextVulkan::querySwapChainSupport(const vk::PhysicalDevice& device) con
     return details;
 }
 
-vulk::ContextVulkan& vulk::ContextVulkan::getInstance()
+vulk::detail::ContextVulkan& vulk::detail::ContextVulkan::getInstance()
 {
     assert(s_instance);
     return *s_instance;

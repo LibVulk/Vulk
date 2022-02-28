@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <glm/glm.hpp>
+
 #include <compare>
 #include <cstdint>
 
@@ -64,6 +66,11 @@ struct Color
         value += a;
 
         return value;
+    }
+
+    [[nodiscard]] constexpr glm::vec3 to_glm_color() const noexcept
+    {
+        return glm::vec3{static_cast<float>(r) / 255.f, static_cast<float>(g) / 255.f, static_cast<float>(b) / 255.f};
     }
 
     static Color Red;

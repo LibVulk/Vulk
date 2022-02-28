@@ -17,30 +17,31 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
+#include "Vulk/Graphics/ADrawable.hpp"
 
-#include <memory>
+#include "Vulk/Contexts/ContextVulkan.hpp"
 
-#include "Vulk/Macros.hpp"
-
-namespace vulk::detail {
-class ContextGLFW
+vulk::ADrawable::ADrawable()
 {
-public:
-    ~ContextGLFW();
+    // detail::ContextVulkan::getInstance().registerDrawable(*this);
+}
 
-    [[nodiscard]] static ContextGLFW& getInstance();
+vulk::ADrawable::~ADrawable()
+{
+    // detail::ContextVulkan::getInstance().unregisterDrawable(*this);
+}
 
-    /**
-     * Makes sure a valid GLFW context is created
-     */
-    inline static void ensureInstance() { (void) getInstance(); }
+void vulk::ADrawable::setScale(const glm::vec2& scale)
+{
+    m_scale = scale;
+}
 
-    VULK_NO_MOVE_OR_COPY(ContextGLFW)
+void vulk::ADrawable::setOrigin(const glm::vec2& origin)
+{
+    m_origin = origin;
+}
 
-private:
-    ContextGLFW();
-
-    static std::unique_ptr<ContextGLFW> s_instance;
-};
-}  // namespace vulk::detail
+void vulk::ADrawable::setPosition(const glm::vec2& position)
+{
+    m_position = position;
+}

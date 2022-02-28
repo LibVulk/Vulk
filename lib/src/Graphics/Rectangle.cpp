@@ -17,30 +17,14 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
+#include "Vulk/Graphics/Rectangle.hpp"
 
-#include <memory>
-
-#include "Vulk/Macros.hpp"
-
-namespace vulk::detail {
-class ContextGLFW
+vulk::Rectangle::Rectangle()
 {
-public:
-    ~ContextGLFW();
-
-    [[nodiscard]] static ContextGLFW& getInstance();
-
-    /**
-     * Makes sure a valid GLFW context is created
-     */
-    inline static void ensureInstance() { (void) getInstance(); }
-
-    VULK_NO_MOVE_OR_COPY(ContextGLFW)
-
-private:
-    ContextGLFW();
-
-    static std::unique_ptr<ContextGLFW> s_instance;
-};
-}  // namespace vulk::detail
+    setVertices(std::array{Vertex{{-0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}},  //
+                           Vertex{{0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}},   //
+                           Vertex{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},    //
+                           Vertex{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}});
+    setIndices(std::array<uint32_t, 6>{0, 1, 2, 2, 3, 0});
+    makeBuffers();
+}

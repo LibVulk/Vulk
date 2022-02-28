@@ -19,28 +19,12 @@
 
 #pragma once
 
-#include <memory>
+#include "Vulk/Graphics/AShape.hpp"
 
-#include "Vulk/Macros.hpp"
-
-namespace vulk::detail {
-class ContextGLFW
+namespace vulk {
+class Circle : public AShape
 {
 public:
-    ~ContextGLFW();
-
-    [[nodiscard]] static ContextGLFW& getInstance();
-
-    /**
-     * Makes sure a valid GLFW context is created
-     */
-    inline static void ensureInstance() { (void) getInstance(); }
-
-    VULK_NO_MOVE_OR_COPY(ContextGLFW)
-
-private:
-    ContextGLFW();
-
-    static std::unique_ptr<ContextGLFW> s_instance;
+    void draw() const override {}
 };
-}  // namespace vulk::detail
+}  // namespace vulk

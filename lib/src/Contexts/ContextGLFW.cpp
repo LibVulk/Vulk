@@ -26,20 +26,20 @@
 
 #include "Vulk/Exceptions.hpp"
 
-std::unique_ptr<vulk::ContextGLFW> vulk::ContextGLFW::s_instance{nullptr};
+std::unique_ptr<vulk::detail::ContextGLFW> vulk::detail::ContextGLFW::s_instance{nullptr};
 
-vulk::ContextGLFW::ContextGLFW()
+vulk::detail::ContextGLFW::ContextGLFW()
 {
     if (glfwInit() != GLFW_TRUE)
         throw GLFWException();
 }
 
-vulk::ContextGLFW::~ContextGLFW()
+vulk::detail::ContextGLFW::~ContextGLFW()
 {
     glfwTerminate();
 }
 
-vulk::ContextGLFW& vulk::ContextGLFW::getInstance()
+vulk::detail::ContextGLFW& vulk::detail::ContextGLFW::getInstance()
 {
     if (!s_instance)
         s_instance = std::unique_ptr<ContextGLFW>{new ContextGLFW};

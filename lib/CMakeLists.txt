@@ -5,6 +5,7 @@ add_library(
         include/Vulk/Vec3.hpp
         include/Vulk/Rect.hpp
         include/Vulk/Mat3.hpp
+        include/Vulk/Macros.hpp
         include/Vulk/ClassUtils.hpp
         src/Window.cpp include/Vulk/Window.hpp
         src/Exceptions.cpp include/Vulk/Exceptions.hpp
@@ -17,6 +18,11 @@ add_library(
         src/Keyboard.cpp include/Vulk/Keyboard.hpp
         src/Mouse.cpp include/Vulk/Mouse.hpp
         src/Objects.cpp include/Vulk/Objects.hpp
+        src/Graphics/ADrawable.cpp include/Vulk/Graphics/ADrawable.hpp
+        src/Graphics/AShape.cpp include/Vulk/Graphics/AShape.hpp
+        src/Graphics/Triangle.cpp include/Vulk/Graphics/Triangle.hpp
+        src/Graphics/Rectangle.cpp include/Vulk/Graphics/Rectangle.hpp
+        src/Graphics/Circle.cpp include/Vulk/Graphics/Circle.hpp
         src/Color.cpp include/Vulk/Color.hpp
 )
 

@@ -21,8 +21,6 @@
 
 #include <GLFW/glfw3.h>
 
-#include <stdexcept>
-
 #include "Vulk/Contexts/ContextGLFW.hpp"
 #include "Vulk/Contexts/ContextVulkan.hpp"
 #include "Vulk/Exceptions.hpp"
@@ -36,7 +34,7 @@ vulk::Window::Window(unsigned int width, unsigned int height, const char* title)
     assert(height != 0);
     assert(title != nullptr);
 
-    ContextGLFW::ensureInstance();
+    detail::ContextGLFW::ensureInstance();
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);  // TODO: Dynamic from arguments
@@ -52,7 +50,7 @@ vulk::Window::Window(unsigned int width, unsigned int height, const char* title)
     glfwSetKeyCallback(m_windowHandle, onKeyPressed);
     glfwSetMouseButtonCallback(m_windowHandle, onButtonPressed);
 
-    ContextVulkan::createInstance(m_windowHandle);
+    detail::ContextVulkan::createInstance(m_windowHandle);
 }
 
 vulk::Window::~Window()
@@ -76,7 +74,7 @@ vulk::Window& vulk::Window::operator=(Window&& rhs) noexcept
 
 void vulk::Window::display()
 {
-    ContextVulkan::getInstance().draw();
+    detail::ContextVulkan::getInstance().draw();
 
     m_frameManager.update();
 }

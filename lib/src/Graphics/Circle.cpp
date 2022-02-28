@@ -17,30 +17,4 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#pragma once
-
-#include <memory>
-
-#include "Vulk/Macros.hpp"
-
-namespace vulk::detail {
-class ContextGLFW
-{
-public:
-    ~ContextGLFW();
-
-    [[nodiscard]] static ContextGLFW& getInstance();
-
-    /**
-     * Makes sure a valid GLFW context is created
-     */
-    inline static void ensureInstance() { (void) getInstance(); }
-
-    VULK_NO_MOVE_OR_COPY(ContextGLFW)
-
-private:
-    ContextGLFW();
-
-    static std::unique_ptr<ContextGLFW> s_instance;
-};
-}  // namespace vulk::detail
+#include "Vulk/Graphics/Circle.hpp"

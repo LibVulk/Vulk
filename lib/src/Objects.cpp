@@ -19,7 +19,7 @@
 
 #include "Vulk/Objects.hpp"
 
-vk::VertexInputBindingDescription Vertex::getBindingDescription() noexcept
+vk::VertexInputBindingDescription vulk::Vertex::getBindingDescription() noexcept
 {
     vk::VertexInputBindingDescription bindingDescription{};
 
@@ -30,7 +30,7 @@ vk::VertexInputBindingDescription Vertex::getBindingDescription() noexcept
     return bindingDescription;
 }
 
-Vertex::AttributeDescriptions Vertex::getAttributeDescriptions() noexcept
+vulk::Vertex::AttributeDescriptions vulk::Vertex::getAttributeDescriptions() noexcept
 {
     AttributeDescriptions attributeDescriptions{};
 

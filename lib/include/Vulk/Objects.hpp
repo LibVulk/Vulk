@@ -22,6 +22,7 @@
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
 
+namespace vulk {
 struct Vertex
 {
     glm::vec2 position{};
@@ -39,3 +40,4 @@ struct alignas(16) UniformBufferObject
     glm::mat4 view{};
     glm::mat4 projection{};
 };
+}  // namespace vulk

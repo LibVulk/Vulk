@@ -19,28 +19,30 @@
 
 #pragma once
 
-#include <memory>
+#include <glm/vec2.hpp>
 
-#include "Vulk/Macros.hpp"
-
-namespace vulk::detail {
-class ContextGLFW
+namespace vulk {
+class ADrawable
 {
 public:
-    ~ContextGLFW();
+    ADrawable();
+    explicit ADrawable(const glm::vec2& position) : m_position{position} {}
 
-    [[nodiscard]] static ContextGLFW& getInstance();
+    virtual ~ADrawable();
 
-    /**
-     * Makes sure a valid GLFW context is created
-     */
-    inline static void ensureInstance() { (void) getInstance(); }
+    virtual void draw() const = 0;
 
-    VULK_NO_MOVE_OR_COPY(ContextGLFW)
+    virtual void setOrigin(const glm::vec2& origin);
+    virtual void setPosition(const glm::vec2& position);
+    virtual void setScale(const glm::vec2& scale);
 
-private:
-    ContextGLFW();
+    [[nodiscard]] const auto& getOrigin() const noexcept { return m_origin; }
+    [[nodiscard]] const auto& getPosition() const noexcept { return m_position; }
+    [[nodiscard]] const auto& getScale() const noexcept { return m_scale; }
 
-    static std::unique_ptr<ContextGLFW> s_instance;
+protected:
+    glm::vec2 m_origin{};
+    glm::vec2 m_position{};
+    glm::vec2 m_scale{};
 };
-}  // namespace vulk::detail
+}  // namespace vulk
