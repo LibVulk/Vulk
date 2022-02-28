@@ -31,7 +31,7 @@ struct Color
     uint8_t a{};
 
     constexpr Color() noexcept = default;
-    constexpr Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255) noexcept : r{r}, g{g}, b{b}, a{a} {}
+    constexpr Color(uint8_t _r, uint8_t _g, uint8_t _b, uint8_t _a = 255) noexcept : r{_r}, g{_g}, b{_b}, a{_a} {}
     constexpr explicit Color(uint32_t value) noexcept
     {
         constexpr uint32_t MASK = 0x000000FF;
