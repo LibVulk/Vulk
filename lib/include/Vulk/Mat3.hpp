@@ -36,14 +36,35 @@ struct Mat3
       0.0, 0.0, 1.0   // g h i
     };
 
+    /**
+     * @brief
+     *
+     */
     constexpr Mat3() = default;
+    /**
+     * @brief
+     *
+     */
     constexpr explicit Mat3(T value) : m{std::array<T, 9>{value, 0.0, 0.0, 0.0, value, 0.0, 0.0, 0.0, value}} {}
+    /**
+     * @brief
+     *
+     */
     constexpr explicit Mat3(const std::array<T, 9> mat) : m{mat} {}
+    /**
+     * @brief
+     *
+     */
     constexpr Mat3(T a1, T a2, T a3, T a4, T a5, T a6, T a7, T a8, T a9)
         : m{std::array<T, 9>{a1, a2, a3, a4, a5, a6, a7, a8, a9}}
     {
     }
 
+    /**
+     * @brief
+     *
+     * @return constexpr Mat3
+     */
     constexpr Mat3 inverse() const noexcept
     {
         auto cfMatrix = coFactor();
@@ -53,6 +74,11 @@ struct Mat3
                     cfMatrix.m[5] / d, cfMatrix.m[6] / d, cfMatrix.m[7] / d, cfMatrix.m[8] / d};
     }
 
+    /**
+     * @brief
+     *
+     * @return constexpr Mat3
+     */
     constexpr Mat3 coFactor() const noexcept
     {
         return Mat3{
@@ -61,12 +87,24 @@ struct Mat3
           ((m[1] * m[5]) - (m[2] * m[4])),  -((m[0] * m[5]) - (m[2] * m[3])), ((m[0] * m[4]) - (m[1] * m[3]))};
     }
 
+    /**
+     * @brief
+     *
+     * @return constexpr T
+     */
     constexpr T determinant() const noexcept
     {
         auto cfMatrix = coFactor();
         return ((m[0] * cfMatrix.m[0]) + (m[1] * cfMatrix.m[1]) + (m[2] * cfMatrix.m[2]));
     }
 
+    /**
+     * @brief
+     *
+     * @param os
+     * @param mat3
+     * @return constexpr std::ostream&
+     */
     constexpr friend std::ostream& operator<<(std::ostream& os, const Mat3& mat3) noexcept
     {
         return os << mat3.m[0] << ' ' << mat3.m[1] << ' ' << mat3.m[2] << '\n'

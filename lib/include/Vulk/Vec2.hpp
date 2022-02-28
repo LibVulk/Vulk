@@ -29,12 +29,35 @@ struct Vec2
     T x;
     T y;
 
+    /**
+     * @brief
+     *
+     */
     constexpr Vec2() = default;
+    /**
+     * @brief
+     *
+     */
     constexpr Vec2(T aX, T aY) : x{aX}, y{aY} {}
+    /**
+     * @brief
+     *
+     */
     constexpr explicit Vec2(T value) : x{value}, y{value} {}
 
+    /**
+     * @brief
+     *
+     * @return constexpr Vec2
+     */
     constexpr Vec2 operator-() const noexcept { return Vec2{-x, -y}; }
 
+    /**
+     * @brief
+     *
+     * @param rhs
+     * @return constexpr Vec2&
+     */
     constexpr Vec2& operator+=(const Vec2& rhs)
     {
         x += rhs.x;
@@ -42,6 +65,12 @@ struct Vec2
         return *this;
     }
 
+    /**
+     * @brief
+     *
+     * @param rhs
+     * @return constexpr Vec2&
+     */
     constexpr Vec2& operator-=(const Vec2& rhs)
     {
         x -= rhs.x;
@@ -49,6 +78,12 @@ struct Vec2
         return *this;
     }
 
+    /**
+     * @brief
+     *
+     * @param value
+     * @return constexpr Vec2&
+     */
     constexpr Vec2& operator*=(const T value)
     {
         x *= value;
@@ -56,22 +91,64 @@ struct Vec2
         return *this;
     }
 
+    /**
+     * @brief
+     *
+     * @param value
+     * @return constexpr Vec2&
+     */
     constexpr Vec2& operator/=(const T value) { return *this *= (static_cast<T>(1) / value); }
 
+    /**
+     * @brief
+     *
+     * @param lhs
+     * @param rhs
+     * @return constexpr T
+     */
     [[nodiscard]] constexpr static T dot(const Vec2& lhs, const Vec2& rhs) noexcept
     {
         return lhs.x * rhs.x + lhs.y * rhs.y;
     }
 
+    /**
+     * @brief
+     *
+     * @param lhs
+     * @param rhs
+     * @return constexpr T
+     */
     [[nodiscard]] constexpr static T cross(const Vec2& lhs, const Vec2& rhs) noexcept
     {
         return lhs.x * rhs.y - lhs.y * rhs.x;
     }
 
+    /**
+     * @brief
+     *
+     * @return constexpr T
+     */
     [[nodiscard]] constexpr T lengthSquared() const noexcept { return x * x + y * y; }
+    /**
+     * @brief
+     *
+     * @return constexpr T
+     */
     [[nodiscard]] constexpr T length() const noexcept { return static_cast<T>(std::sqrt(lengthSquared())); }
+    /**
+     * @brief
+     *
+     * @return constexpr Vec2
+     */
     [[nodiscard]] constexpr Vec2 normalized() const noexcept { return *this / length(); }
 
+    /**
+     * @brief
+     *
+     * @param os
+     * @param Vec2
+     * @return constexpr std::ostream&
+     */
     constexpr friend std::ostream& operator<<(std::ostream& os, const Vec2& Vec2) noexcept
     {
         return os << Vec2.x << ' ' << Vec2.y << ' ';

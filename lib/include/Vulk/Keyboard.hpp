@@ -158,17 +158,53 @@ enum class Key
 class Keyboard final
 {
 public:
+    /**
+     * @brief Construct a new Keyboard object
+     *
+     * @param window
+     */
     explicit Keyboard(GLFWwindow* window);
+    /**
+     * @brief Destroy the Keyboard object
+     *
+     */
     ~Keyboard();
 
+    /**
+     * @brief
+     *
+     * @param key
+     * @return true
+     * @return false
+     */
     inline bool isKeyDown(vulk::Key key) const noexcept { return m_keyboardInputs[static_cast<size_t>(key)]; };
 
+    /**
+     * @brief
+     *
+     * @param scancode
+     * @param action
+     */
     void onKeyPressed(int scancode, int action);
 
+    /**
+     * @brief Get the Keyboard object
+     *
+     * @param window
+     * @return Keyboard*
+     */
     [[nodiscard]] inline static Keyboard* getKeyboard(GLFWwindow* window) { return s_linkedKeyboard[window]; }
 
 private:
+    /**
+     * @brief
+     *
+     */
     static std::unordered_map<GLFWwindow*, Keyboard*> s_linkedKeyboard;
+    /**
+     * @brief
+     *
+     */
     std::array<bool, GLFW_KEY_LAST + 1> m_keyboardInputs{};
 };
 }  // namespace vulk

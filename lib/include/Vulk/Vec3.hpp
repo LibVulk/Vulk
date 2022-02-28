@@ -30,12 +30,35 @@ struct Vec3
     T y;
     T z;
 
+    /**
+     * @brief
+     *
+     */
     constexpr Vec3() = default;
+    /**
+     * @brief
+     *
+     */
     constexpr Vec3(T aX, T aY, T aZ) : x{aX}, y{aY}, z{aZ} {}
+    /**
+     * @brief
+     *
+     */
     constexpr explicit Vec3(T value) : x{value}, y{value}, z{value} {}
 
+    /**
+     * @brief
+     *
+     * @return constexpr Vec3
+     */
     constexpr Vec3 operator-() const noexcept { return Vec3{-x, -y, -z}; }
 
+    /**
+     * @brief
+     *
+     * @param rhs
+     * @return constexpr Vec3&
+     */
     constexpr Vec3& operator+=(const Vec3& rhs)
     {
         x += rhs.x;
@@ -44,6 +67,12 @@ struct Vec3
         return *this;
     }
 
+    /**
+     * @brief
+     *
+     * @param rhs
+     * @return constexpr Vec3&
+     */
     constexpr Vec3& operator-=(const Vec3& rhs)
     {
         x -= rhs.x;
@@ -52,6 +81,12 @@ struct Vec3
         return *this;
     }
 
+    /**
+     * @brief
+     *
+     * @param value
+     * @return constexpr Vec3&
+     */
     constexpr Vec3& operator*=(const T value)
     {
         x *= value;
@@ -60,22 +95,64 @@ struct Vec3
         return *this;
     }
 
+    /**
+     * @brief
+     *
+     * @param value
+     * @return constexpr Vec3&
+     */
     constexpr Vec3& operator/=(const T value) { return *this *= (static_cast<T>(1) / value); }
 
+    /**
+     * @brief
+     *
+     * @param lhs
+     * @param rhs
+     * @return constexpr T
+     */
     [[nodiscard]] constexpr static T dot(const Vec3& lhs, const Vec3& rhs) noexcept
     {
         return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
     }
 
+    /**
+     * @brief
+     *
+     * @param lhs
+     * @param rhs
+     * @return constexpr Vec3
+     */
     [[nodiscard]] constexpr static Vec3 cross(const Vec3& lhs, const Vec3& rhs) noexcept
     {
         return Vec3{lhs.y * rhs.z - lhs.z * rhs.y, lhs.z * rhs.x - lhs.x * rhs.z, lhs.x * rhs.y - lhs.y * rhs.x};
     }
 
+    /**
+     * @brief
+     *
+     * @return constexpr T
+     */
     [[nodiscard]] constexpr T lengthSquared() const noexcept { return x * x + y * y + z * z; }
+    /**
+     * @brief
+     *
+     * @return constexpr T
+     */
     [[nodiscard]] constexpr T length() const noexcept { return static_cast<T>(std::sqrt(lengthSquared())); }
+    /**
+     * @brief
+     *
+     * @return constexpr Vec3
+     */
     [[nodiscard]] constexpr Vec3 normalized() const noexcept { return *this / length(); }
 
+    /**
+     * @brief
+     *
+     * @param os
+     * @param vec3
+     * @return constexpr std::ostream&
+     */
     constexpr friend std::ostream& operator<<(std::ostream& os, const Vec3& vec3) noexcept
     {
         return os << vec3.x << ' ' << vec3.y << ' ' << vec3.z;

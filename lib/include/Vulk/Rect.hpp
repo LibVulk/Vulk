@@ -33,20 +33,54 @@ struct Rect
     T width;
     T height;
 
+    /**
+     * @brief
+     *
+     */
     constexpr Rect() = default;
+    /**
+     * @brief
+     *
+     */
     constexpr Rect(T aLeft, T aTop, T aWidth, T aHeight) : left{aLeft}, top{aTop}, width{aWidth}, height{aHeight} {}
+    /**
+     * @brief
+     *
+     */
     constexpr Rect(const Vec2<T>& pos, const Vec2<T>& size) : left{pos.x}, top{pos.y}, width{size.x}, height{size.y} {}
 
+    /**
+     * @brief
+     *
+     * @param right
+     * @return true
+     * @return false
+     */
     constexpr bool operator==(const Rect<T>& right) const noexcept
     {
         return left == right.left && top == right.top && width == right.width && height == right.height;
     }
 
+    /**
+     * @brief
+     *
+     * @param right
+     * @return true
+     * @return false
+     */
     constexpr bool operator!=(const Rect<T>& right) const noexcept
     {
         return left != right.left || top != right.top || width != right.width || height != right.height;
     }
 
+    /**
+     * @brief
+     *
+     * @param x
+     * @param y
+     * @return true
+     * @return false
+     */
     [[nodiscard]] constexpr bool contains(T x, T y) const noexcept
     {
         const T minX = std::min(left, static_cast<T>(left + width));
@@ -57,6 +91,13 @@ struct Rect
         return (x >= minX) && (x <= maxX) && (y >= minY) && (y <= maxY);
     }
 
+    /**
+     * @brief
+     *
+     * @param point
+     * @return true
+     * @return false
+     */
     [[nodiscard]] constexpr bool contains(const Vec2<T>& point) const noexcept
     {
         const T minX = std::min(left, static_cast<T>(left + width));
@@ -67,6 +108,13 @@ struct Rect
         return (point.x >= minX) && (point.x <= maxX) && (point.y >= minY) && (point.y <= maxY);
     }
 
+    /**
+     * @brief
+     *
+     * @param os
+     * @param rect
+     * @return constexpr std::ostream&
+     */
     constexpr friend std::ostream& operator<<(std::ostream& os, const Rect<T>& rect) noexcept
     {
         return os << rect.left << ' ' << rect.top << ' ' << rect.width << ' ' << rect.height;

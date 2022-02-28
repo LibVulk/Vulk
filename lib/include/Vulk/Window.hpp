@@ -31,17 +31,60 @@ namespace vulk {
 class Window
 {
 public:
+    /**
+    * @brief Construct a new Window object
+    *
+    * @param width
+    * @param height
+    * @param title
+    */
     Window(unsigned int width, unsigned int height, const char* title);
+    /**
+     * @brief Destroy the Window object
+     *
+     */
     ~Window();
 
+    /**
+     * @brief Construct a new Window object
+     *
+     * @param rhs
+     */
     Window(Window&& rhs) noexcept;
+    /**
+     * @brief
+     *
+     * @param rhs
+     * @return Window&
+     */
     Window& operator=(Window&& rhs) noexcept;
 
+    /**
+     * @brief Construct a new Window object
+     *
+     */
     Window(const Window&) = delete;
+    /**
+     * @brief
+     *
+     * @return Window&
+     */
     Window& operator=(const Window&) = delete;
 
+    /**
+     * @brief
+     *
+     */
     void display();
+    /**
+     * @brief
+     *
+     */
     void pollEvents();
+    /**
+     * @brief
+     *
+     */
     void close() noexcept;
 
     /**
@@ -52,15 +95,47 @@ public:
      */
     void setTitle(const char* newTitle) noexcept;
 
+    /**
+     * @brief
+     *
+     * @return true
+     * @return false
+     */
     [[nodiscard]] bool isOpen() const noexcept;
+    /**
+     * @brief Get the Frame Manager object
+     *
+     * @return FrameManager&
+     */
     [[nodiscard]] FrameManager& getFrameManager() noexcept { return m_frameManager; }
+    /**
+     * @brief Get the Frame Manager object
+     *
+     * @return const FrameManager&
+     */
     [[nodiscard]] const FrameManager& getFrameManager() const noexcept { return m_frameManager; }
 
 private:
+    /**
+     * @brief
+     *
+     */
     GLFWwindow* m_windowHandle{nullptr};
+    /**
+     * @brief
+     *
+     */
     FrameManager m_frameManager{};
 
+    /**
+     * @brief
+     *
+     */
     std::unique_ptr<Keyboard> m_keyboard{nullptr};
+    /**
+     * @brief
+     *
+     */
     std::unique_ptr<Mouse> m_mouse{nullptr};
 };
 }  // namespace vulk
