@@ -26,6 +26,9 @@
 
 namespace vulk {
 
+/**
+ * Mouse buttons enum
+ */
 enum class Buttons
 {
     BUTTON_1 = GLFW_MOUSE_BUTTON_1,
@@ -42,12 +45,20 @@ enum class Buttons
     BUTTON_LAST = GLFW_MOUSE_BUTTON_LAST,
 };
 
+/**
+ * Mouse class interface that can be used to receive user input
+ */
 class Mouse final
 {
 public:
     explicit Mouse(GLFWwindow* window);
     ~Mouse();
 
+    /**
+     * Checks if the give mouse button is down
+     * @param button Mouse button
+     * @return true if it's currently pressed
+     */
     inline bool isButtonDown(vulk::Buttons button) const noexcept { return m_mouseInputs[static_cast<size_t>(button)]; }
 
     void onButtonPressed(int button, int action);

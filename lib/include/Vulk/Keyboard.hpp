@@ -25,7 +25,9 @@
 #include <functional>
 
 namespace vulk {
-
+/**
+ * Keyboard key enum
+ */
 enum class Key
 {
     UNKNOWN = GLFW_KEY_UNKNOWN,
@@ -155,6 +157,9 @@ enum class Key
     MENU = GLFW_KEY_MENU,
 };
 
+/**
+ * Keyboard class interface that can be used to receive user input
+ */
 class Keyboard final
 {
 public:

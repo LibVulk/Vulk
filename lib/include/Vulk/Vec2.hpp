@@ -26,7 +26,7 @@ namespace vulk {
 template<typename T>
 /**
  * @brief
- * The Vec3 structure that can be use to create objects or do mathematical operations
+ * The Vec2 structure that can be use to create objects or do mathematical operations
  */
 struct Vec2
 {
