@@ -7,7 +7,8 @@ add_executable(
         src/Run.cpp
         src/Rect.cpp
         src/Mat3.cpp
-        src/Color.cpp)
+        src/Color.cpp
+)
 
 target_link_libraries(${PROJECT_NAME}-unit-tests PUBLIC ${PROJECT_NAME})
 target_include_directories(${PROJECT_NAME}-unit-tests PRIVATE ../lib/include)
