@@ -849,14 +849,15 @@ void vulk::detail::ContextVulkan::recordCommandBuffer(vk::CommandBuffer& command
     commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipelineLayout, 0, 1,
                                      &m_descriptorSets[m_currentFrame], 0, nullptr);
 
-    int32_t vertexOffset{};
+    uint32_t vertexOffset{};
     for (const auto& m_shape : m_shapes)
     {
         commandBuffer.bindVertexBuffers(vertexOffset, static_cast<uint32_t>(vertexBuffers.size()), vertexBuffers.data(),
                                         offsets.data());
         commandBuffer.bindIndexBuffer(m_shape->getIndexBuffer(), 0, vk::IndexType::eUint32);
-        commandBuffer.drawIndexed(static_cast<uint32_t>(m_shape->getIndexCount()), 1, 0, vertexOffset, 0);
-        vertexOffset += static_cast<int32_t>(m_shape->getVertexCount());
+        commandBuffer.drawIndexed(static_cast<uint32_t>(m_shape->getIndexCount()), 1, 0,
+                                  static_cast<int32_t>(vertexOffset), 0);
+        vertexOffset += static_cast<uint32_t>(m_shape->getVertexCount());
     }
     //    commandBuffer.bindVertexBuffers(0, static_cast<uint32_t>(vertexBuffers.size()), vertexBuffers.data(),
     //                                    offsets.data());
