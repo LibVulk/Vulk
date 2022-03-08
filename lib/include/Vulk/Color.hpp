@@ -57,11 +57,11 @@ struct Color
         uint32_t value = r;
 
         value <<= 8;
-        value += g;
+        value |= g;
         value <<= 8;
-        value += b;
+        value |= b;
         value <<= 8;
-        value += a;
+        value |= a;
 
         return value;
     }
