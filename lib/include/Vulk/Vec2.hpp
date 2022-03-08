@@ -20,6 +20,7 @@
 #pragma once
 
 #include <cmath>
+#include <compare>
 #include <ostream>
 
 namespace vulk {
