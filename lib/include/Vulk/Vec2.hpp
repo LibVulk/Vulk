@@ -33,6 +33,13 @@ struct Vec2
     constexpr Vec2(T aX, T aY) : x{aX}, y{aY} {}
     constexpr explicit Vec2(T value) : x{value}, y{value} {}
 
+    constexpr Vec2(Vec2&&) noexcept = default;
+    constexpr Vec2(const Vec2&) noexcept = default;
+    constexpr Vec2& operator=(Vec2&&) noexcept = default;
+    constexpr Vec2& operator=(const Vec2&) noexcept = default;
+
+    constexpr auto operator<=>(const Vec2&) const noexcept = default;
+
     constexpr Vec2 operator-() const noexcept { return Vec2{-x, -y}; }
 
     constexpr Vec2& operator+=(const Vec2& rhs)

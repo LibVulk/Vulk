@@ -20,6 +20,7 @@
 #pragma once
 
 #include <cmath>
+#include <compare>
 #include <ostream>
 
 namespace vulk {
@@ -33,6 +34,13 @@ struct Vec3
     constexpr Vec3() = default;
     constexpr Vec3(T aX, T aY, T aZ) : x{aX}, y{aY}, z{aZ} {}
     constexpr explicit Vec3(T value) : x{value}, y{value}, z{value} {}
+
+    constexpr Vec3(Vec3&&) noexcept = default;
+    constexpr Vec3(const Vec3&) noexcept = default;
+    constexpr Vec3& operator=(Vec3&&) noexcept = default;
+    constexpr Vec3& operator=(const Vec3&) noexcept = default;
+
+    constexpr auto operator<=>(const Vec3&) const noexcept = default;
 
     constexpr Vec3 operator-() const noexcept { return Vec3{-x, -y, -z}; }
 
